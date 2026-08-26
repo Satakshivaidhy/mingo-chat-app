@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { chatData, userData } from "../../assets/dummy";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../config/api";
@@ -10,8 +10,18 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   const [receiver, setReceiver] = useState("");
   const [sender, setSender] = useState("");
   const [message, setMessage] = useState("");
-  //console.log(selectedFriend);
-  //console.log(currentUser);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [filteredChatData]);
+
+  console.log(selectedFriend);
+  console.log(currentUser);
 
   const fetchChatData = async () => {
     try {
@@ -135,6 +145,7 @@ const Chatting = ({ selectedFriend, currentUser }) => {
               <div className={`chat-bubble `}>{chat.message}</div>
             </div>
           ))}
+          <div ref={messagesEndRef} />
         </div>
         <div className="h-full px-3 py-2 input flex gap-3">
           <button>😊</button>
