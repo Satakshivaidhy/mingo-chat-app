@@ -46,7 +46,7 @@ const Chat = () => {
   return (
     <>
       {isLogin && (
-        <div className="flex gap-2 h-screen bg-base-300 overflow-hidden">
+        <div className="flex gap-2 h-screen bg-base-300 overflow-hidden ">
           <div className="w-3/17 bg-base-100 flex flex-col border-r border-base-300 min-w-[300px] shadow-sm z-10">
             {/* WhatsApp Sidebar Header */}
             <div className="h-16 bg-base-200 flex items-center justify-between px-4 shrink-0">

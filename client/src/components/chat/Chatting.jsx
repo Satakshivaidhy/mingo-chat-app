@@ -50,13 +50,13 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   };
 
   const handleMessageSendSocket = async () => {
-    if (!message) return;
+    if (!message || !message.trim()) return;
     console.log(message);
 
     const payload = {
       senderId: user._id,
       receiverId: receiver?._id,
-      message,
+      message: message.trim(),
     };
 
     const timeStamp = new Date().toISOString();
@@ -111,6 +111,13 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   }, [selectedFriend]);
 
   console.log(filteredChatData);
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleMessageSendSocket();
+    }
+  };
+
   return (
     <>
       <div className="bg-base-200 p-4">
@@ -151,8 +158,11 @@ const Chatting = ({ selectedFriend, currentUser }) => {
           <button>😊</button>
           <textarea
             type="text"
-            className="w-full outline-0"
+            className="w-full outline-0 resize-none"
+            placeholder="Type a message..."
+            rows="1"
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
             value={message}
           ></textarea>
           <button onClick={handleMessageSendSocket}>Send</button>
