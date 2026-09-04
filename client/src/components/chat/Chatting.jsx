@@ -5,6 +5,12 @@ import socketAPI from "../../config/webSocket";
 import EmojiPicker from "./EmojiPicker";
 import { IoSend } from "react-icons/io5";
 import { BsEmojiSmile, BsEmojiSmileFill } from "react-icons/bs";
+import {
+  formatMessageTime,
+  formatMessageDayAndDate,
+  formatFullDateTime,
+  getDateDividerLabel,
+} from "../../utils/dateUtils";
 
 const Chatting = ({ selectedFriend, currentUser }) => {
   const { user } = useAuth();
@@ -67,7 +73,16 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   };
 
   const handleReceiveMessage = (newMessagePack) => {
-    setFilteredChatData((prev) => [...prev, newMessagePack]);
+    if (
+      newMessagePack.senderId === selectedFriend?._id ||
+      newMessagePack.receiverId === selectedFriend?._id
+    ) {
+      const msg = {
+        ...newMessagePack,
+        createdAt: newMessagePack.createdAt || new Date().toISOString(),
+      };
+      setFilteredChatData((prev) => [...prev, msg]);
+    }
   };
 
   useEffect(() => {
@@ -133,29 +148,53 @@ const Chatting = ({ selectedFriend, currentUser }) => {
 
       {/* Messages Scroll Area */}
       <div className="flex-1 p-3 flex flex-col gap-3 justify-between overflow-hidden">
-        <div className="h-[70vh] w-full card p-3 overflow-y-auto bg-accent/20 custom-scrollbar">
-          {filteredChatData.map((chat, idx) => (
-            <div
-              key={chat._id || idx}
-              className={`chat ${chat.senderId !== sender._id ? "chat-receiver" : "chat-sender"}`}
-            >
-              <div className="chat-avatar avatar"></div>
-              <div className="chat-header text-base-content">
-                {chat.senderId !== sender._id
-                  ? receiver.fullName
-                  : sender.fullName}
-                <time className="text-base-content/50 ml-2">
-                  {chat.createdAt
-                    ? new Date(chat.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : chat.timestamp}
-                </time>
-              </div>
-              <div className="chat-bubble break-words">{chat.message}</div>
-            </div>
-          ))}
+        <div className="h-[70vh] w-full card p-3 overflow-y-auto bg-accent/20 custom-scrollbar space-y-2">
+          {filteredChatData.map((chat, idx) => {
+            const rawTime = chat.createdAt || chat.updatedAt || chat.timestamp;
+            const currentDate = rawTime ? new Date(rawTime).toDateString() : null;
+            const prevRawTime =
+              idx > 0
+                ? filteredChatData[idx - 1].createdAt ||
+                  filteredChatData[idx - 1].updatedAt ||
+                  filteredChatData[idx - 1].timestamp
+                : null;
+            const prevDate = prevRawTime ? new Date(prevRawTime).toDateString() : null;
+            const showDateDivider = currentDate && currentDate !== prevDate;
+
+            return (
+              <React.Fragment key={chat._id || idx}>
+                {showDateDivider && (
+                  <div className="flex justify-center my-3 sticky top-0 z-10">
+                    <span className="badge badge-sm py-2 px-3 bg-base-100/90 border border-base-300 backdrop-blur shadow-sm text-base-content/80 text-[11px] font-medium rounded-full">
+                      📅 {getDateDividerLabel(rawTime)}
+                    </span>
+                  </div>
+                )}
+
+                <div
+                  className={`chat ${chat.senderId !== sender._id ? "chat-receiver" : "chat-sender"}`}
+                >
+                  <div className="chat-avatar avatar"></div>
+                  <div className="chat-header text-base-content flex items-center flex-wrap gap-1 mb-1">
+                    <span className="font-semibold text-xs">
+                      {chat.senderId !== sender._id
+                        ? receiver.fullName
+                        : sender.fullName}
+                    </span>
+                    {rawTime && (
+                      <time
+                        title={formatFullDateTime(rawTime)}
+                        className="text-base-content/60 text-[11px] ml-1.5"
+                      >
+                        • {formatMessageDayAndDate(rawTime)} at {formatMessageTime(rawTime)}
+                      </time>
+                    )}
+                  </div>
+                  <div className="chat-bubble break-words">{chat.message}</div>
+                </div>
+              </React.Fragment>
+            );
+          })}
           <div ref={messagesEndRef} />
         </div>
 
