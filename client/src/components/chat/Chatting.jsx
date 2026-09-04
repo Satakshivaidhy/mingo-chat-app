@@ -21,6 +21,8 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  // Message currently being replied to
+  const [replyingTo, setReplyingTo] = useState(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -46,6 +48,7 @@ const Chatting = ({ selectedFriend, currentUser }) => {
       senderId: user._id,
       receiverId: receiver?._id,
       message: message.trim(),
+      replyTo: replyingTo?._id || null,
     };
 
     const timeStamp = new Date().toISOString();
@@ -60,11 +63,13 @@ const Chatting = ({ selectedFriend, currentUser }) => {
             senderId: user._id,
             receiverId: receiver?._id,
             message: message.trim(),
+            replyTo: replyingTo || null,
             updatedAt: timeStamp,
             createdAt: timeStamp,
           },
         ]);
         setMessage("");
+        setReplyingTo(null);
         setShowEmojiPicker(false);
       }
     } catch (error) {
@@ -83,6 +88,19 @@ const Chatting = ({ selectedFriend, currentUser }) => {
       };
       setFilteredChatData((prev) => [...prev, msg]);
     }
+  };
+
+  const handleReply = (chat) => {
+    setReplyingTo(chat);
+
+    // Automatically focus the message input
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
   };
 
   useEffect(() => {
@@ -155,8 +173,8 @@ const Chatting = ({ selectedFriend, currentUser }) => {
             const prevRawTime =
               idx > 0
                 ? filteredChatData[idx - 1].createdAt ||
-                  filteredChatData[idx - 1].updatedAt ||
-                  filteredChatData[idx - 1].timestamp
+                filteredChatData[idx - 1].updatedAt ||
+                filteredChatData[idx - 1].timestamp
                 : null;
             const prevDate = prevRawTime ? new Date(prevRawTime).toDateString() : null;
             const showDateDivider = currentDate && currentDate !== prevDate;
@@ -166,7 +184,7 @@ const Chatting = ({ selectedFriend, currentUser }) => {
                 {showDateDivider && (
                   <div className="flex justify-center my-3 sticky top-0 z-10">
                     <span className="badge badge-sm py-2 px-3 bg-base-100/90 border border-base-300 backdrop-blur shadow-sm text-base-content/80 text-[11px] font-medium rounded-full">
-                      📅 {getDateDividerLabel(rawTime)}
+                      {getDateDividerLabel(rawTime)}
                     </span>
                   </div>
                 )}
@@ -190,7 +208,34 @@ const Chatting = ({ selectedFriend, currentUser }) => {
                       </time>
                     )}
                   </div>
-                  <div className="chat-bubble break-words">{chat.message}</div>
+                  <div className="flex items-end gap-1">
+                    <div className="chat-bubble break-words">
+                      {chat.replyTo && (
+                        <div className="mb-2 p-2 rounded-lg bg-base-300/50 border-l-4 border-primary">
+                          <div className="text-xs font-semibold text-primary">
+                            {chat.replyTo.senderId === sender._id
+                              ? sender.fullName
+                              : receiver.fullName}
+                          </div>
+
+                          <div className="text-xs text-base-content/70 truncate max-w-[250px]">
+                            {chat.replyTo.message}
+                          </div>
+                        </div>
+                      )}
+
+                      <div>{chat.message}</div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleReply(chat)}
+                      className="btn btn-ghost btn-xs text-base-content/50 hover:text-primary"
+                      title="Reply"
+                    >
+                      ↩
+                    </button>
+                  </div>
                 </div>
               </React.Fragment>
             );
@@ -200,6 +245,36 @@ const Chatting = ({ selectedFriend, currentUser }) => {
 
         {/* Input Bar with Emoji Trigger & Popover */}
         <div className="relative">
+
+          {/* Reply Preview */}
+          {replyingTo && (
+            <div className="mb-2 px-4 py-2 bg-base-100 border border-base-300 rounded-xl flex items-center justify-between shadow-sm">
+
+              <div className="border-l-4 border-primary pl-3 min-w-0">
+                <div className="text-xs font-semibold text-primary">
+                  Replying to{" "}
+                  {replyingTo.senderId === sender._id
+                    ? sender.fullName
+                    : receiver.fullName}
+                </div>
+
+                <div className="text-sm text-base-content/70 truncate">
+                  {replyingTo.message}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={cancelReply}
+                className="btn btn-ghost btn-sm btn-circle"
+                title="Cancel reply"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
+          {/* Emoji Picker Popover */}
           {showEmojiPicker && (
             <EmojiPicker
               onSelectEmoji={handleSelectEmoji}
@@ -212,11 +287,10 @@ const Chatting = ({ selectedFriend, currentUser }) => {
               type="button"
               data-emoji-trigger="true"
               onClick={() => setShowEmojiPicker((prev) => !prev)}
-              className={`btn btn-ghost btn-circle btn-sm text-xl transition-all ${
-                showEmojiPicker
-                  ? "text-primary scale-110 bg-base-200"
-                  : "text-base-content/70 hover:text-base-content hover:scale-105"
-              }`}
+              className={`btn btn-ghost btn-circle btn-sm text-xl transition-all ${showEmojiPicker
+                ? "text-primary scale-110 bg-base-200"
+                : "text-base-content/70 hover:text-base-content hover:scale-105"
+                }`}
               title="Add Emoji"
             >
               {showEmojiPicker ? (
