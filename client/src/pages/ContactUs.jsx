@@ -14,27 +14,27 @@ const ContactUs = () => {
 
   const validateForm = () => {
     const newErrors = {}
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required'
     }
-    
+
     if (!formData.email) {
       newErrors.email = 'Email is required'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email'
     }
-    
+
     if (!formData.subject.trim()) {
       newErrors.subject = 'Subject is required'
     }
-    
+
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required'
     } else if (formData.message.length < 10) {
       newErrors.message = 'Message must be at least 10 characters'
     }
-    
+
     return newErrors
   }
 
@@ -54,7 +54,7 @@ const ContactUs = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     const newErrors = validateForm()
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -63,7 +63,7 @@ const ContactUs = () => {
 
     setIsLoading(true)
     setErrors({})
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await fetch('/api/contact', {
@@ -71,13 +71,13 @@ const ContactUs = () => {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(formData)
       // })
-      
+
       // Simulated submission delay
       await new Promise(resolve => setTimeout(resolve, 1500))
-      
+
       setSuccessMessage('Thank you for your message! We\'ll get back to you soon.')
       setFormData({ name: '', email: '', subject: '', message: '' })
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(''), 5000)
     } catch (error) {
@@ -184,9 +184,8 @@ const ContactUs = () => {
                   <input
                     type="text"
                     placeholder="Your name"
-                    className={`input input-bordered w-full transition-all ${
-                      errors.name ? 'input-error' : 'focus:input-primary'
-                    }`}
+                    className={`input input-bordered w-full transition-all ${errors.name ? 'input-error' : 'focus:input-primary'
+                      }`}
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
@@ -207,9 +206,8 @@ const ContactUs = () => {
                   <input
                     type="email"
                     placeholder="your.email@example.com"
-                    className={`input input-bordered w-full transition-all ${
-                      errors.email ? 'input-error' : 'focus:input-primary'
-                    }`}
+                    className={`input input-bordered w-full transition-all ${errors.email ? 'input-error' : 'focus:input-primary'
+                      }`}
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
@@ -230,9 +228,8 @@ const ContactUs = () => {
                   <input
                     type="text"
                     placeholder="What is this about?"
-                    className={`input input-bordered w-full transition-all ${
-                      errors.subject ? 'input-error' : 'focus:input-primary'
-                    }`}
+                    className={`input input-bordered w-full transition-all ${errors.subject ? 'input-error' : 'focus:input-primary'
+                      }`}
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
@@ -251,9 +248,8 @@ const ContactUs = () => {
                     <span className="label-text font-semibold">Message</span>
                   </label>
                   <textarea
-                    className={`textarea textarea-bordered w-full h-32 transition-all ${
-                      errors.message ? 'textarea-error' : 'focus:textarea-primary'
-                    }`}
+                    className={`textarea textarea-bordered w-full h-32 transition-all ${errors.message ? 'textarea-error' : 'focus:textarea-primary'
+                      }`}
                     placeholder="Your message here..."
                     name="message"
                     value={formData.message}
@@ -270,9 +266,8 @@ const ContactUs = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className={`btn btn-primary w-full font-bold mt-6 ${
-                    isLoading ? 'loading' : ''
-                  }`}
+                  className={`btn btn-primary w-full font-bold mt-6 ${isLoading ? 'loading' : ''
+                    }`}
                   disabled={isLoading}
                 >
                   {isLoading ? 'Sending...' : 'Send Message'}

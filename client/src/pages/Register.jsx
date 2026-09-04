@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import api from "../config/api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { setUser, setIsLogin } = useAuth();
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -73,7 +77,13 @@ const Register = () => {
     try {
       const res = await api.post("/auth/register", formData);
       toast.success(res.data.message);
+      if (res.data.data) {
+        sessionStorage.setItem("AppUser", JSON.stringify(res.data.data));
+        setUser(res.data.data);
+        setIsLogin(true);
+      }
       handleClearForm();
+      navigate("/chat");
     } catch (error) {
       console.log(error);
       toast.error(error?.response?.data?.message || "Registration failed");

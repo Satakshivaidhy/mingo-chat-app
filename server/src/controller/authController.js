@@ -23,14 +23,22 @@ export const UserRegister = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    await User.create({
+    const newUser = await User.create({
       fullName,
       email,
       mobileNumber,
       password: hashedPassword,
     });
 
-    res.status(201).json({ message: "Registration successful" });
+    generateToken(newUser._id, res);
+
+    const userData = newUser.toObject();
+    delete userData.password;
+
+    res.status(201).json({
+      message: "Registration successful",
+      data: userData,
+    });
   } catch (error) {
     next(error);
   }
