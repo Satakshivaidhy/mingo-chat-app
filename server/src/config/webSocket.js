@@ -30,6 +30,7 @@ const WebSocket = (io) => {
                 senderId: payload.senderId,
                 receiverId: payload.receiverId,
                 message: payload.message,
+                replyTo: payload.replyTo || null,
 
             });
             console.log("Message saved to database", newMessage);
