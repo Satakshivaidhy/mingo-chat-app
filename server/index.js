@@ -15,13 +15,27 @@ import WebSocket from "./src/config/webSocket.js";
 
 const app = express();
 
-// Middlewares
+// Allowed origins setup
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL // Render Frontend URL yahan dynamically access hoga
+].filter(Boolean); // Clean undefined if FRONTEND_URL is not set initially
+
+// Express CORS Middlewares
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps, postman, or health checks)
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -36,7 +50,6 @@ app.get("/", (req, res) => {
   res.status(200).json("Hello from Mingo Chat App Server");
 });
 
-// Error handlers
 // Global error handler
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
@@ -45,17 +58,14 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({ success: false, message });
 });
 
-// Not found handler
-// app.use((req, res) => {
-//   res.status(404).json("Not Found");
-// });
-
 const PORT = process.env.PORT || 5000;
 
 const httpServer = http.createServer(app);
+
+// Socket.IO CORS Setup
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173"],              //process.env.FRONTEND_URL
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST"]
   },
