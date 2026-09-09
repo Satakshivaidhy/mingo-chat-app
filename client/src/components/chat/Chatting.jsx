@@ -19,8 +19,11 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   const [sender, setSender] = useState("");
   const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isReceiverTyping, setIsReceiverTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
+  const isSelfTypingRef = useRef(false);
   // Message currently being replied to
   const [replyingTo, setReplyingTo] = useState(null);
 
@@ -30,7 +33,7 @@ const Chatting = ({ selectedFriend, currentUser }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [filteredChatData]);
+  }, [filteredChatData, isReceiverTyping]);
 
   const fetchChatData = async () => {
     try {
@@ -41,8 +44,56 @@ const Chatting = ({ selectedFriend, currentUser }) => {
     }
   };
 
+  const stopTypingEmitter = () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+    if (isSelfTypingRef.current && receiver?._id && socketAPI.connected) {
+      socketAPI.emit("typing:stop", {
+        senderId: user._id,
+        receiverId: receiver._id,
+      });
+      isSelfTypingRef.current = false;
+    }
+  };
+
+  const handleTypingChange = (newVal) => {
+    setMessage(newVal);
+
+    if (!receiver?._id || !socketAPI.connected) return;
+
+    if (newVal.trim().length > 0) {
+      if (!isSelfTypingRef.current) {
+        isSelfTypingRef.current = true;
+        socketAPI.emit("typing:start", {
+          senderId: user._id,
+          receiverId: receiver._id,
+        });
+      }
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      typingTimeoutRef.current = setTimeout(() => {
+        if (isSelfTypingRef.current && socketAPI.connected && receiver?._id) {
+          socketAPI.emit("typing:stop", {
+            senderId: user._id,
+            receiverId: receiver._id,
+          });
+          isSelfTypingRef.current = false;
+        }
+      }, 2000);
+    } else {
+      stopTypingEmitter();
+    }
+  };
+
   const handleMessageSendSocket = async () => {
     if (!message || !message.trim()) return;
+
+    stopTypingEmitter();
 
     const payload = {
       senderId: user._id,
@@ -82,6 +133,7 @@ const Chatting = ({ selectedFriend, currentUser }) => {
       newMessagePack.senderId === selectedFriend?._id ||
       newMessagePack.receiverId === selectedFriend?._id
     ) {
+      setIsReceiverTyping(false);
       const msg = {
         ...newMessagePack,
         createdAt: newMessagePack.createdAt || new Date().toISOString(),
@@ -107,13 +159,40 @@ const Chatting = ({ selectedFriend, currentUser }) => {
     fetchChatData();
     setSender(user);
     setReceiver(selectedFriend);
+    setIsReceiverTyping(false);
+    isSelfTypingRef.current = false;
+
+    const handleTypingStart = (data) => {
+      if (data.senderId === selectedFriend?._id) {
+        setIsReceiverTyping(true);
+      }
+    };
+
+    const handleTypingStop = (data) => {
+      if (data.senderId === selectedFriend?._id) {
+        setIsReceiverTyping(false);
+      }
+    };
 
     if (selectedFriend) {
       socketAPI.on("receive", handleReceiveMessage);
+      socketAPI.on("typing:start", handleTypingStart);
+      socketAPI.on("typing:stop", handleTypingStop);
     }
 
     return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (isSelfTypingRef.current && selectedFriend?._id && socketAPI.connected) {
+        socketAPI.emit("typing:stop", {
+          senderId: user._id,
+          receiverId: selectedFriend._id,
+        });
+      }
       socketAPI.off("receive", handleReceiveMessage);
+      socketAPI.off("typing:start", handleTypingStart);
+      socketAPI.off("typing:stop", handleTypingStop);
     };
   }, [selectedFriend]);
 
@@ -125,12 +204,13 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   };
 
   const handleSelectEmoji = (emojiChar) => {
+    let updatedMessage = "";
     if (textareaRef.current) {
       const start = textareaRef.current.selectionStart ?? message.length;
       const end = textareaRef.current.selectionEnd ?? message.length;
-      const updatedMessage =
+      updatedMessage =
         message.substring(0, start) + emojiChar + message.substring(end);
-      setMessage(updatedMessage);
+      handleTypingChange(updatedMessage);
 
       // Restore cursor position right after the newly inserted emoji
       setTimeout(() => {
@@ -141,7 +221,8 @@ const Chatting = ({ selectedFriend, currentUser }) => {
         }
       }, 0);
     } else {
-      setMessage((prev) => prev + emojiChar);
+      updatedMessage = message + emojiChar;
+      handleTypingChange(updatedMessage);
     }
   };
 
@@ -159,7 +240,18 @@ const Chatting = ({ selectedFriend, currentUser }) => {
             <h3 className="font-medium text-base text-base-content leading-tight">
               {receiver?.fullName || "No friend selected"}
             </h3>
-            <span className="text-xs text-base-content/60">Online</span>
+            {isReceiverTyping ? (
+              <span className="text-xs text-primary font-medium flex items-center gap-1.5">
+                <span className="inline-block animate-pulse font-semibold">typing</span>
+                <span className="inline-flex gap-0.5 items-center">
+                  <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-1 h-1 rounded-full bg-primary animate-bounce"></span>
+                </span>
+              </span>
+            ) : (
+              <span className="text-xs text-base-content/60">Online</span>
+            )}
           </div>
         </div>
       </div>
@@ -240,6 +332,29 @@ const Chatting = ({ selectedFriend, currentUser }) => {
               </React.Fragment>
             );
           })}
+
+          {/* Real-time Typing Bubble Indicator */}
+          {isReceiverTyping && (
+            <div className="chat chat-receiver transition-all duration-300">
+              <div className="chat-avatar avatar"></div>
+              <div className="chat-header text-base-content flex items-center gap-1 mb-1">
+                <span className="font-semibold text-xs text-primary">
+                  {receiver?.fullName}
+                </span>
+              </div>
+              <div className="chat-bubble bg-base-100 text-base-content/80 py-2.5 px-4 shadow-sm border border-base-300 rounded-2xl flex items-center gap-2 w-fit">
+                <span className="text-xs text-base-content/60 italic font-medium">
+                  {receiver?.fullName?.split(" ")[0] || "Friend"} is typing
+                </span>
+                <span className="inline-flex gap-1 items-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></span>
+                </span>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -306,7 +421,7 @@ const Chatting = ({ selectedFriend, currentUser }) => {
               className="w-full outline-0 resize-none bg-transparent text-base-content placeholder-base-content/50 py-1 max-h-32 min-h-[32px] leading-relaxed"
               placeholder="Type a message..."
               rows="1"
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => handleTypingChange(e.target.value)}
               onKeyDown={handleKeyDown}
               value={message}
             ></textarea>

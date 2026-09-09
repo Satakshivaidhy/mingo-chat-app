@@ -13,6 +13,7 @@ const Chat = () => {
   const [recentUser, setRecentUser] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [isOpenChat, setIsOpenChat] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
 
   const fetchRecentUsers = async () => {
     // Simulate fetching recent users from an API
@@ -36,12 +37,45 @@ const Chat = () => {
     if (isLogin && user) {
       socketAPI.emit("user:online", user._id);
       fetchRecentUsers();
-    }
 
-    return () => {
-      socketAPI.emit("user:disconnect", user._id);
-    };
-  }, []);
+      const handleGlobalTypingStart = ({ senderId }) => {
+        if (senderId) {
+          setTypingUsers((prev) => ({ ...prev, [senderId]: true }));
+        }
+      };
+
+      const handleGlobalTypingStop = ({ senderId }) => {
+        if (senderId) {
+          setTypingUsers((prev) => {
+            const next = { ...prev };
+            delete next[senderId];
+            return next;
+          });
+        }
+      };
+
+      const handleGlobalReceive = (msg) => {
+        if (msg?.senderId) {
+          setTypingUsers((prev) => {
+            const next = { ...prev };
+            delete next[msg.senderId];
+            return next;
+          });
+        }
+      };
+
+      socketAPI.on("typing:start", handleGlobalTypingStart);
+      socketAPI.on("typing:stop", handleGlobalTypingStop);
+      socketAPI.on("receive", handleGlobalReceive);
+
+      return () => {
+        socketAPI.emit("user:disconnect", user._id);
+        socketAPI.off("typing:start", handleGlobalTypingStart);
+        socketAPI.off("typing:stop", handleGlobalTypingStop);
+        socketAPI.off("receive", handleGlobalReceive);
+      };
+    }
+  }, [isLogin, user]);
 
   return (
     <>
@@ -91,7 +125,18 @@ const Chat = () => {
                         <span className="text-xs text-base-content/60">Yesterday</span>
                       </div>
                       <div className="text-sm text-base-content/60 truncate">
-                        Tap to open chat
+                        {typingUsers[friend._id] ? (
+                          <span className="text-primary font-medium italic flex items-center gap-1 text-xs">
+                            <span className="animate-pulse font-semibold">typing</span>
+                            <span className="inline-flex gap-0.5 items-center">
+                              <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
+                              <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
+                              <span className="w-1 h-1 rounded-full bg-primary animate-bounce"></span>
+                            </span>
+                          </span>
+                        ) : (
+                          "Tap to open chat"
+                        )}
                       </div>
                     </div>
                   </div>
