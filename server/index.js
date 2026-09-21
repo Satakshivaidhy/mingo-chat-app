@@ -18,6 +18,7 @@ const app = express();
 // Allowed origins setup
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://mingo-chat-app.vercel.app",
   process.env.FRONTEND_URL // Render Frontend URL yahan dynamically access hoga
 ].filter(Boolean); // Clean undefined if FRONTEND_URL is not set initially
 
