@@ -16,12 +16,15 @@ const Chat = () => {
   const [typingUsers, setTypingUsers] = useState({});
 
   const fetchRecentUsers = async () => {
-    // Simulate fetching recent users from an API
     try {
       const res = await api.get("/user/allusers");
-      setRecentUser(res.data.data);
+      setRecentUser(res.data.data || []);
     } catch (error) {
       console.error("Failed to fetch recent users", error);
+      if (error?.response?.status === 401) {
+        sessionStorage.removeItem("AppUser");
+        navigate("/login");
+      }
     }
   };
 

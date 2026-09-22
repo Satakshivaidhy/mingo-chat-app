@@ -6,6 +6,7 @@ import { Protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.get("/allUsers", Protect, getAllUsers);
+router.get("/allusers", Protect, getAllUsers);
 router.put("/profile", Protect, updateProfile);
 
 router.post("/send-message", Protect, SendMessage);

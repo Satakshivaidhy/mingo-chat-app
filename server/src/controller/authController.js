@@ -82,3 +82,21 @@ export const UserLogin = async (req, res, next) => {
     next(error);
   }
 };
+
+// ================= LOGOUT =================
+export const UserLogout = async (req, res, next) => {
+  try {
+    const isProduction = process.env.NODE_ENV === "production";
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+    });
+
+    res.status(200).json({
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};

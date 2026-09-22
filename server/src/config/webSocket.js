@@ -58,31 +58,32 @@ const WebSocket = (io) => {
 
         // message send
         socket.on("send", async (payload) => {
-            console.log("Payload (Messsage Pack)", payload);
-            const newMessage = await Message.create({
-                senderId: payload.senderId,
-                receiverId: payload.receiverId,
-                message: payload.message,
-                replyTo: payload.replyTo || null,
+            console.log("Payload (Message Pack)", payload);
+            try {
+                let newMessage = await Message.create({
+                    senderId: payload.senderId,
+                    receiverId: payload.receiverId,
+                    message: payload.message,
+                    replyTo: payload.replyTo || null,
+                });
 
-            });
-            console.log("Message saved to database", newMessage);
+                if (payload.replyTo) {
+                    newMessage = await newMessage.populate("replyTo");
+                }
 
-            const newMessagePack = newMessage.toObject();
-            delete newMessagePack._id;
-            delete newMessagePack.__v;
+                console.log("Message saved to database", newMessage);
 
-            const receiverSocketId = OnlineUsers[payload.receiverId];
-            // const senderSocketId = OnlineUsers[payload.senderId];
+                const newMessagePack = newMessage.toObject();
 
-            if (receiverSocketId) {
-                io.to(receiverSocketId).emit("receive", newMessagePack);
-                io.to(receiverSocketId).emit("typing:stop", { senderId: payload.senderId, receiverId: payload.receiverId });
+                const receiverSocketId = OnlineUsers[payload.receiverId];
+
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit("receive", newMessagePack);
+                    io.to(receiverSocketId).emit("typing:stop", { senderId: payload.senderId, receiverId: payload.receiverId });
+                }
+            } catch (err) {
+                console.error("Error saving/sending message:", err);
             }
-            // if(senderSocketId) {
-            //     io.to(senderSocketId).emit("receive", newMessagePack);
-            // }
-
         });
     });
 };

@@ -22,12 +22,19 @@ const allowedOrigins = [
   process.env.FRONTEND_URL // Render Frontend URL yahan dynamically access hoga
 ].filter(Boolean); // Clean undefined if FRONTEND_URL is not set initially
 
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.indexOf(origin) !== -1) return true;
+  if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return true;
+  return false;
+};
+
 // Express CORS Middlewares
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, postman, or health checks)
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -55,7 +62,7 @@ app.get("/", (req, res) => {
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal server error";
-  console.error("❌ Error:", err);
+  console.error("❌ Error:", err.message || err);
   res.status(statusCode).json({ success: false, message });
 });
 
@@ -66,7 +73,13 @@ const httpServer = http.createServer(app);
 // Socket.IO CORS Setup
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST"]
   },

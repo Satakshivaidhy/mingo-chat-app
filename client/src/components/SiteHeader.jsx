@@ -32,14 +32,23 @@ const SiteHeader = () => {
 
       <div className="flex items-center gap-3">
         {isLogin ? (
-          <div
-            className="flex items-center gap-3 cursor-pointer p-1 border border-primary-content rounded-md transition hover:opacity-80"
-            onClick={() => navigate("/dashboard")}
-          >
-            <span className="text-primary-content text-lg font-semibold text-nowrap">
-              Welcome, {user?.fullName?.split(" ")[0] || user?.email?.split("@")[0]}
-            </span>
-          </div>
+          <>
+            <button
+              className="btn btn-sm btn-ghost text-primary-content hover:bg-primary-focus flex items-center gap-1 font-semibold"
+              onClick={() => navigate("/chat")}
+            >
+              💬 Chats
+            </button>
+            <div
+              className="flex items-center gap-2 cursor-pointer p-1.5 px-3 border border-primary-content rounded-lg transition hover:bg-primary-focus/40"
+              onClick={() => navigate("/dashboard")}
+              title="View Profile Dashboard"
+            >
+              <span className="text-primary-content text-sm font-semibold text-nowrap">
+                👤 {user?.fullName?.split(" ")[0] || user?.email?.split("@")[0]}
+              </span>
+            </div>
+          </>
         ) : (
           <>
             <button

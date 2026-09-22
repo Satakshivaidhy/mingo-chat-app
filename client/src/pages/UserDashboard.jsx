@@ -88,11 +88,17 @@ const UserDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    sessionStorage.removeItem("AppUser");
-    setIsLogin(false);
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setUser(null);
+      sessionStorage.removeItem("AppUser");
+      setIsLogin(false);
+      navigate("/login");
+    }
   };
 
   return (
@@ -113,7 +119,12 @@ const UserDashboard = () => {
 
       {!isEditing ? (
         <div className="card bg-base-100 shadow-lg p-8">
-          <h2 className="text-2xl font-semibold mb-6">Profile Information</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold">Profile Information</h2>
+            <button onClick={() => navigate("/chat")} className="btn btn-primary btn-sm gap-1">
+              💬 Go to Chats
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="bg-base-200 p-4 rounded-lg">
@@ -146,7 +157,10 @@ const UserDashboard = () => {
           </div>
 
           <div className="flex flex-col gap-3">
-            <button onClick={handleEdit} className="btn btn-primary w-full">
+            <button onClick={() => navigate("/chat")} className="btn btn-primary w-full">
+              💬 Open Chats
+            </button>
+            <button onClick={handleEdit} className="btn btn-outline btn-neutral w-full">
               Edit Profile
             </button>
             <button onClick={handleLogout} className="btn btn-error btn-outline w-full">
