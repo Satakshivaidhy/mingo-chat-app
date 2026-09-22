@@ -5,7 +5,7 @@ export const generateToken = (id, res) => {
     expiresIn: "7d",
   });
 
-  const isProduction = process.env.NODE_ENV === "production";
+  const isProduction = process.env.NODE_ENV === "production" || process.env.RENDER === "true";
 
   res.cookie("token", token, {
     httpOnly: true,

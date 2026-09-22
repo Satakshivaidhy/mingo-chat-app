@@ -15,6 +15,9 @@ import WebSocket from "./src/config/webSocket.js";
 
 const app = express();
 
+// Trust reverse proxy for HTTPS cookie detection on Render/cloud hosts
+app.set("trust proxy", 1);
+
 // Allowed origins setup
 const allowedOrigins = [
   "http://localhost:5173",
@@ -27,6 +30,8 @@ const isOriginAllowed = (origin) => {
   if (allowedOrigins.indexOf(origin) !== -1) return true;
   if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return true;
+  // Support all Vercel deployment URLs (production & preview branches)
+  if (/^https:\/\/([a-zA-Z0-9_-]+\.)*vercel\.app$/.test(origin)) return true;
   return false;
 };
 
@@ -41,6 +46,8 @@ app.use(
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie", "X-Requested-With"],
   }),
 );
 
@@ -81,7 +88,7 @@ const io = new Server(httpServer, {
       }
     },
     credentials: true,
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
   },
 });
 
