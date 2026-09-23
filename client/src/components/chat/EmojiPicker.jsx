@@ -85,11 +85,10 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
   return (
     <div
       ref={pickerRef}
-      className="absolute bottom-16 left-2 sm:left-4 z-50 w-[320px] sm:w-[360px] max-w-[95vw] bg-base-100/95 backdrop-blur-md text-base-content border border-base-300 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 animate-in fade-in zoom-in-95"
-      style={{ height: "420px" }}
+      className="absolute bottom-14 sm:bottom-16 left-1 right-1 sm:left-4 sm:right-auto z-50 w-auto sm:w-[360px] max-w-[calc(100vw-1rem)] sm:max-w-[95vw] mx-auto sm:mx-0 bg-base-100/95 backdrop-blur-md text-base-content border border-base-300 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all duration-200 animate-in fade-in zoom-in-95 h-[340px] sm:h-[420px] max-h-[50vh] sm:max-h-[420px]"
     >
       {/* Header with Search & Quick Close */}
-      <div className="p-3 pb-2 border-b border-base-300 flex items-center gap-2">
+      <div className="p-2.5 sm:p-3 pb-2 border-b border-base-300 flex items-center gap-2">
         <div className="relative flex-1">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50 size-4" />
           <input
@@ -98,7 +97,7 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
             placeholder="Search emoji..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input input-sm w-full pl-9 pr-8 bg-base-200/70 border-base-300 rounded-full text-sm focus:outline-primary placeholder:text-base-content/40"
+            className="input input-sm w-full pl-9 pr-8 bg-base-200/70 border-base-300 rounded-full text-xs sm:text-sm focus:outline-primary placeholder:text-base-content/40"
           />
           {searchQuery && (
             <button
@@ -121,7 +120,7 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
       {/* Quick Reactions Bar (WhatsApp/Instagram style) */}
       {!searchQuery && (
         <div className="px-3 py-1.5 bg-base-200/40 border-b border-base-300 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] font-semibold text-base-content/60 uppercase tracking-wider pl-1 shrink-0">
+          <span className="text-[10px] sm:text-[11px] font-semibold text-base-content/60 uppercase tracking-wider pl-0.5 shrink-0">
             Top
           </span>
           <div className="flex gap-1">
@@ -130,7 +129,7 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
                 key={idx}
                 type="button"
                 onClick={() => handleEmojiClick(emoji)}
-                className="w-7 h-7 flex items-center justify-center text-lg hover:scale-125 hover:bg-base-200 rounded-lg transition-transform active:scale-95 shrink-0"
+                className="w-7 h-7 flex items-center justify-center text-base sm:text-lg hover:scale-125 hover:bg-base-200 rounded-lg transition-transform active:scale-95 shrink-0"
               >
                 {emoji}
               </button>
@@ -146,7 +145,7 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
             <button
               type="button"
               onClick={() => setActiveCategory("recent")}
-              className={`px-2 py-1 rounded-lg text-sm transition-colors ${
+              className={`px-2 py-1 rounded-lg text-xs sm:text-sm transition-colors ${
                 activeCategory === "recent"
                   ? "bg-primary text-primary-content font-bold shadow-sm"
                   : "text-base-content/60 hover:bg-base-200 hover:text-base-content"
@@ -165,7 +164,7 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
                 const elem = document.getElementById(`cat-${cat.id}`);
                 if (elem) elem.scrollIntoView({ behavior: "smooth" });
               }}
-              className={`px-2 py-1 rounded-lg text-sm transition-colors ${
+              className={`px-2 py-1 rounded-lg text-xs sm:text-sm transition-colors ${
                 activeCategory === cat.id
                   ? "bg-primary text-primary-content font-bold shadow-sm"
                   : "text-base-content/60 hover:bg-base-200 hover:text-base-content"
@@ -179,28 +178,28 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
       )}
 
       {/* Emoji Content List */}
-      <div className="flex-1 overflow-y-auto p-3 custom-scrollbar space-y-4">
+      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 custom-scrollbar space-y-3 sm:space-y-4">
         {searchQuery ? (
           <div>
-            <div className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-2">
+            <div className="text-[11px] sm:text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-2">
               Results ({filteredEmojis.length})
             </div>
             {filteredEmojis.length > 0 ? (
-              <div className="grid grid-cols-7 sm:grid-cols-8 gap-1">
+              <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
                 {filteredEmojis.map((emoji, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleEmojiClick(emoji.char)}
                     title={emoji.name}
-                    className="h-10 w-10 flex items-center justify-center text-2xl hover:scale-125 hover:bg-base-200 rounded-xl transition-transform active:scale-90"
+                    className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center text-xl sm:text-2xl hover:scale-125 hover:bg-base-200 rounded-xl transition-transform active:scale-90"
                   >
                     {emoji.char}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-base-content/50 text-sm">
+              <div className="py-10 text-center text-base-content/50 text-xs sm:text-sm">
                 No emojis found for "{searchQuery}"
               </div>
             )}
@@ -210,16 +209,16 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
             {/* Recently Used */}
             {recentEmojis.length > 0 && (
               <div id="cat-recent">
-                <div className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <div className="text-[11px] sm:text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                   <span>🕒</span> Recently Used
                 </div>
-                <div className="grid grid-cols-7 sm:grid-cols-8 gap-1">
+                <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
                   {recentEmojis.map((char, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleEmojiClick(char)}
-                      className="h-10 w-10 flex items-center justify-center text-2xl hover:scale-125 hover:bg-base-200 rounded-xl transition-transform active:scale-90"
+                      className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center text-xl sm:text-2xl hover:scale-125 hover:bg-base-200 rounded-xl transition-transform active:scale-90"
                     >
                       {char}
                     </button>
@@ -233,17 +232,17 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
               const list = groupedEmojis[cat.id] || [];
               return (
                 <div key={cat.id} id={`cat-${cat.id}`}>
-                  <div className="text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <div className="text-[11px] sm:text-xs font-semibold text-base-content/60 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                     <span>{cat.icon}</span> {cat.name}
                   </div>
-                  <div className="grid grid-cols-7 sm:grid-cols-8 gap-1">
+                  <div className="grid grid-cols-6 sm:grid-cols-8 gap-1">
                     {list.map((emoji, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => handleEmojiClick(emoji.char)}
                         title={emoji.name}
-                        className="h-10 w-10 flex items-center justify-center text-2xl hover:scale-125 hover:bg-base-200 rounded-xl transition-transform active:scale-90"
+                        className="h-9 w-9 sm:h-10 sm:w-10 flex items-center justify-center text-xl sm:text-2xl hover:scale-125 hover:bg-base-200 rounded-xl transition-transform active:scale-90"
                       >
                         {emoji.char}
                       </button>
@@ -257,7 +256,7 @@ const EmojiPicker = ({ onSelectEmoji, onClose }) => {
       </div>
 
       {/* Footer hint */}
-      <div className="px-3 py-1 bg-base-200/50 border-t border-base-300 text-[11px] text-base-content/50 flex justify-between items-center">
+      <div className="px-3 py-1 bg-base-200/50 border-t border-base-300 text-[10px] sm:text-[11px] text-base-content/50 flex justify-between items-center">
         <span>Click to insert</span>
         <span>Esc to close</span>
       </div>

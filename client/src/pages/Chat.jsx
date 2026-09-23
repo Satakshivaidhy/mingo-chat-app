@@ -14,6 +14,7 @@ const Chat = () => {
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [isOpenChat, setIsOpenChat] = useState(false);
   const [typingUsers, setTypingUsers] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchRecentUsers = async () => {
     try {
@@ -27,10 +28,6 @@ const Chat = () => {
       }
     }
   };
-
-  // console.log(user);
-  //const currentUser = 1;
-  console.log(recentUser);
 
   useEffect(() => {
     if (!isLogin) {
@@ -80,57 +77,120 @@ const Chat = () => {
     }
   }, [isLogin, user]);
 
+  const filteredUsers = recentUser.filter((friend) =>
+    friend.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    friend.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleBackToList = () => {
+    setSelectedFriend(null);
+    setIsOpenChat(false);
+  };
+
   return (
     <>
       {isLogin && (
-        <div className="flex gap-2 h-screen bg-base-300 overflow-hidden ">
-          <div className="w-3/17 bg-base-100 flex flex-col border-r border-base-300 min-w-[300px] shadow-sm z-10">
-            {/* WhatsApp Sidebar Header */}
-            <div className="h-16 bg-base-200 flex items-center justify-between px-4 shrink-0">
-              <div className="avatar placeholder cursor-pointer">
-                <div className="bg-neutral text-neutral-content rounded-full w-10 h-10">
-                  <span className="text-lg flex justify-center items-center">{user?.fullName?.charAt(0).toUpperCase()}</span>
+        <div className="chat-container-height flex w-full overflow-hidden bg-base-300 relative">
+          {/* Sidebar - Full width on mobile when no friend is selected, hidden on mobile when friend selected; always visible on desktop */}
+          <div
+            className={`w-full md:w-80 lg:w-96 shrink-0 h-full bg-base-100 flex-col border-r border-base-300 shadow-sm z-10 ${
+              selectedFriend ? "hidden md:flex" : "flex"
+            }`}
+          >
+            {/* Sidebar Header */}
+            <div className="h-14 sm:h-16 bg-base-200/90 backdrop-blur px-4 flex items-center justify-between shrink-0 border-b border-base-300">
+              <div
+                className="flex items-center gap-3 cursor-pointer group"
+                onClick={() => navigate("/dashboard")}
+                title="View Profile"
+              >
+                <div className="avatar placeholder">
+                  <div className="bg-primary text-primary-content rounded-full w-9 h-9 sm:w-10 sm:h-10 text-sm font-bold ring-2 ring-primary/20">
+                    <span>{user?.fullName?.charAt(0).toUpperCase() || "U"}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-semibold leading-tight text-base-content group-hover:text-primary transition-colors">
+                    {user?.fullName || "My Profile"}
+                  </span>
+                  <span className="text-[11px] text-success font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Online
+                  </span>
                 </div>
               </div>
-              <div className="flex gap-5 text-base-content/70">
-                <svg viewBox="0 0 24 24" width="24" height="24" className="cursor-pointer hover:text-base-content transition-colors" fill="currentColor"><path d="M12.072 1.761a10.05 10.05 0 00-9.303 5.65.977.977 0 001.756.855 8.098 8.098 0 017.496-4.553.977.977 0 10.051-1.952zM1.926 13.64a10.052 10.052 0 007.461 7.925.977.977 0 00.471-1.895 8.097 8.097 0 01-6.012-6.386.977.977 0 00-1.92.356zm13.729 7.454a10.053 10.053 0 008.028-5.918.977.977 0 00-1.782-.803 8.097 8.097 0 01-6.469 4.77.977.977 0 00.223 1.948h.001zm6.059-15.11a10.05 10.05 0 00-6.195-3.871.977.977 0 00-.332 1.925 8.097 8.097 0 014.992 3.12.977.977 0 101.535-1.174z"></path></svg>
-                <svg viewBox="0 0 24 24" width="24" height="24" className="cursor-pointer hover:text-base-content transition-colors" fill="currentColor"><path d="M19.005 3.175H4.674C3.642 3.175 3 3.789 3 4.821V21.02l3.544-3.514h12.461c1.033 0 2.064-1.06 2.064-2.093V4.821c-.001-1.032-1.032-1.646-2.064-1.646zm-4.989 9.869H7.041V11.1h6.975v1.944zm3-4H7.041V7.1h9.975v1.944z"></path></svg>
-                <svg viewBox="0 0 24 24" width="24" height="24" className="cursor-pointer hover:text-base-content transition-colors" fill="currentColor"><path d="M12 7a2 2 0 1 0-.001-4.001A2 2 0 0 0 12 7zm0 2a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 9zm0 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 12 15z"></path></svg>
+
+              <div className="flex items-center gap-2 text-base-content/70">
+                <button
+                  onClick={fetchRecentUsers}
+                  className="btn btn-ghost btn-circle btn-xs text-base-content/70 hover:text-base-content"
+                  title="Refresh users"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
               </div>
             </div>
 
             {/* Search Bar */}
-            <div className="p-2 border-b border-base-300 bg-base-100">
-              <div className="bg-base-200 rounded-lg flex items-center px-3 py-1.5 h-9">
-                <svg viewBox="0 0 24 24" width="20" height="20" className="text-base-content/60 mr-3" fill="currentColor"><path d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 001.256-3.386 5.207 5.207 0 10-5.207 5.208 5.183 5.183 0 003.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 110-7.21 3.605 3.605 0 010 7.21z"></path></svg>
-                <input type="text" placeholder="Search or start new chat" className="bg-transparent outline-none text-sm w-full text-base-content placeholder-base-content/60" />
+            <div className="p-2.5 border-b border-base-300 bg-base-100">
+              <div className="bg-base-200 rounded-xl flex items-center px-3 py-1.5 h-9 transition-colors focus-within:ring-1 focus-within:ring-primary">
+                <svg viewBox="0 0 24 24" width="16" height="16" className="text-base-content/50 mr-2 shrink-0" fill="currentColor">
+                  <path d="M15.009 13.805h-.636l-.22-.219a5.184 5.184 0 001.256-3.386 5.207 5.207 0 10-5.207 5.208 5.183 5.183 0 003.385-1.255l.221.22v.635l4.004 3.999 1.194-1.195-3.997-4.007zm-4.808 0a3.605 3.605 0 110-7.21 3.605 3.605 0 010 7.21z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search contacts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-transparent outline-none text-xs sm:text-sm w-full text-base-content placeholder-base-content/50"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-xs text-base-content/50 hover:text-base-content"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Chats List */}
-            <div className="flex-1 overflow-y-auto bg-base-100 custom-scrollbar">
-              {recentUser.length > 0 ? (
-                recentUser.map((friend, idx) => (
+            {/* Chats / Contacts List */}
+            <div className="flex-1 overflow-y-auto bg-base-100 custom-scrollbar divide-y divide-base-200/60">
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((friend) => (
                   <div
-                    key={idx}
-                    onClick={() => { setSelectedFriend(friend); setIsOpenChat(true); }}
-                    className={`flex items-center px-3 cursor-pointer transition-colors ${selectedFriend?._id === friend._id ? 'bg-base-200' : 'hover:bg-base-200/50'
-                      }`}
+                    key={friend._id}
+                    onClick={() => {
+                      setSelectedFriend(friend);
+                      setIsOpenChat(true);
+                    }}
+                    className={`flex items-center px-3.5 py-3 cursor-pointer transition-colors active:scale-[0.99] select-none ${
+                      selectedFriend?._id === friend._id
+                        ? "bg-primary/10 border-l-4 border-primary"
+                        : "hover:bg-base-200/60"
+                    }`}
                   >
-                    <div className="avatar placeholder mr-3 py-2">
-                      <div className="w-12 h-12 rounded-full bg-base-300 text-base-content/80">
-                        <span className="text-xl font-normal flex justify-center content-center">{friend.fullName.charAt(0).toUpperCase()}</span>
+                    <div className="avatar placeholder mr-3 shrink-0">
+                      <div className="w-11 h-11 rounded-full bg-base-300 text-base-content font-semibold flex items-center justify-center">
+                        <span className="text-base">{friend.fullName?.charAt(0).toUpperCase()}</span>
                       </div>
                     </div>
-                    <div className="flex-1 flex flex-col justify-center border-b border-base-300/50 h-[72px] pr-2">
+
+                    <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-0.5">
-                        <span className="text-[17px] text-base-content">{friend.fullName}</span>
-                        <span className="text-xs text-base-content/60">Yesterday</span>
+                        <span className="text-sm font-semibold text-base-content truncate">
+                          {friend.fullName}
+                        </span>
+                        <span className="text-[11px] text-base-content/50 shrink-0 ml-1">
+                          {friend.mobileNumber ? `📱` : ""}
+                        </span>
                       </div>
-                      <div className="text-sm text-base-content/60 truncate">
+                      <div className="text-xs text-base-content/60 truncate">
                         {typingUsers[friend._id] ? (
-                          <span className="text-primary font-medium italic flex items-center gap-1 text-xs">
-                            <span className="animate-pulse font-semibold">typing</span>
+                          <span className="text-primary font-medium italic flex items-center gap-1">
+                            <span className="animate-pulse">typing</span>
                             <span className="inline-flex gap-0.5 items-center">
                               <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
                               <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
@@ -138,27 +198,44 @@ const Chat = () => {
                             </span>
                           </span>
                         ) : (
-                          "Tap to open chat"
+                          friend.email || "Tap to chat"
                         )}
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="p-8 text-center text-base-content/60 text-sm">No recent chats</div>
+                <div className="p-8 text-center text-base-content/50 text-sm">
+                  {searchQuery ? "No contacts match your search" : "No users found"}
+                </div>
               )}
             </div>
           </div>
-          <div className="w-14/17 bg-base-300 relative overflow-hidden">
+
+          {/* Main Chat Area - Full width on mobile when a friend is selected, hidden on mobile when no friend is selected; takes remaining space on desktop */}
+          <div
+            className={`w-full md:flex-1 h-full bg-base-300 relative overflow-hidden flex-col min-w-0 ${
+              selectedFriend ? "flex" : "hidden md:flex"
+            }`}
+          >
             {selectedFriend ? (
               <Chatting
                 selectedFriend={selectedFriend}
                 currentUser={user}
+                onBack={handleBackToList}
               />
             ) : (
-              <div className="flex-1 h-full flex flex-col items-center justify-center text-center text-base-content bg-base-200">
-                <h1 className="text-3xl font-light mt-8">FlyonUI Styled WhatsApp</h1>
-                <p className="mt-4 text-sm text-base-content/60">Send and receive messages dynamically matching your theme.</p>
+              <div className="flex-1 h-full flex flex-col items-center justify-center p-6 text-center text-base-content bg-base-200/50">
+                <div className="w-20 h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center text-4xl mb-4 animate-pulse">
+                  💬
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Mingo Real-Time Chat</h2>
+                <p className="max-w-md text-sm text-base-content/60 leading-relaxed">
+                  Select a contact from the sidebar to start a secure, real-time conversation with themes, emojis, and instant replies.
+                </p>
+                <div className="badge badge-primary badge-outline mt-6 text-xs py-2 px-3">
+                  ✨ End-to-End Real-Time Socket Connection
+                </div>
               </div>
             )}
           </div>

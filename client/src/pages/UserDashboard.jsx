@@ -102,53 +102,69 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="container mx-auto mt-10 mb-10 max-w-2xl px-4">
-      <h1 className="text-4xl font-bold mb-8 text-center">User Dashboard</h1>
+    <div className="flex-1 container mx-auto py-6 sm:py-10 max-w-2xl px-3 sm:px-6">
+      <h1 className="text-2xl sm:text-4xl font-extrabold mb-6 sm:mb-8 text-center text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+        User Dashboard
+      </h1>
 
       {error && (
-        <div className="alert alert-error mb-6">
+        <div className="alert alert-error mb-4 sm:mb-6 text-xs sm:text-sm shadow-md">
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="alert alert-success mb-6">
+        <div className="alert alert-success mb-4 sm:mb-6 text-xs sm:text-sm shadow-md">
           <span>{success}</span>
         </div>
       )}
 
       {!isEditing ? (
-        <div className="card bg-base-100 shadow-lg p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">Profile Information</h2>
-            <button onClick={() => navigate("/chat")} className="btn btn-primary btn-sm gap-1">
-              💬 Go to Chats
+        <div className="card bg-base-100 shadow-xl border border-base-300/60 p-4 sm:p-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 pb-4 border-b border-base-200">
+            <div className="flex items-center gap-3">
+              <div className="avatar placeholder">
+                <div className="bg-primary text-primary-content rounded-full w-12 h-12 text-lg font-bold ring-2 ring-primary/20">
+                  <span>{user?.fullName?.charAt(0).toUpperCase() || "U"}</span>
+                </div>
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold leading-tight">{user?.fullName || "User"}</h2>
+                <p className="text-xs text-base-content/60">{user?.email}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate("/chat")}
+              className="btn btn-primary btn-sm gap-1.5 w-full sm:w-auto shadow-sm"
+            >
+              <span>💬</span> Go to Chats
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-base-200 p-4 rounded-lg">
-              <label className="text-sm font-semibold uppercase text-base-content/60">Full Name</label>
-              <p className="text-lg mt-2">{user?.fullName || "Not provided"}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+            <div className="bg-base-200/70 p-3.5 sm:p-4 rounded-xl border border-base-300/40">
+              <label className="text-[11px] sm:text-xs font-semibold uppercase text-base-content/60">Full Name</label>
+              <p className="text-sm sm:text-base font-medium mt-1 truncate">{user?.fullName || "Not provided"}</p>
             </div>
 
-            <div className="bg-base-200 p-4 rounded-lg">
-              <label className="text-sm font-semibold uppercase text-base-content/60">Email</label>
-              <p className="text-lg mt-2">{user?.email || "Not provided"}</p>
+            <div className="bg-base-200/70 p-3.5 sm:p-4 rounded-xl border border-base-300/40">
+              <label className="text-[11px] sm:text-xs font-semibold uppercase text-base-content/60">Email</label>
+              <p className="text-sm sm:text-base font-medium mt-1 truncate">{user?.email || "Not provided"}</p>
             </div>
 
-            <div className="bg-base-200 p-4 rounded-lg">
-              <label className="text-sm font-semibold uppercase text-base-content/60">Mobile Number</label>
-              <p className="text-lg mt-2">{user?.mobileNumber || "Not provided"}</p>
+            <div className="bg-base-200/70 p-3.5 sm:p-4 rounded-xl border border-base-300/40">
+              <label className="text-[11px] sm:text-xs font-semibold uppercase text-base-content/60">Mobile Number</label>
+              <p className="text-sm sm:text-base font-medium mt-1">{user?.mobileNumber || "Not provided"}</p>
             </div>
 
             {user?.createdAt && (
-              <div className="bg-base-200 p-4 rounded-lg">
-                <label className="text-sm font-semibold uppercase text-base-content/60">Account Created</label>
-                <p className="text-lg mt-2">
+              <div className="bg-base-200/70 p-3.5 sm:p-4 rounded-xl border border-base-300/40">
+                <label className="text-[11px] sm:text-xs font-semibold uppercase text-base-content/60">Joined On</label>
+                <p className="text-sm sm:text-base font-medium mt-1">
                   {new Date(user.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
-                    month: "long",
+                    month: "short",
                     day: "numeric",
                   })}
                 </p>
@@ -156,64 +172,75 @@ const UserDashboard = () => {
             )}
           </div>
 
-          <div className="flex flex-col gap-3">
-            <button onClick={() => navigate("/chat")} className="btn btn-primary w-full">
+          <div className="flex flex-col gap-2.5 sm:gap-3">
+            <button
+              onClick={() => navigate("/chat")}
+              className="btn btn-primary w-full min-h-[44px] text-sm sm:text-base shadow-md"
+            >
               💬 Open Chats
             </button>
-            <button onClick={handleEdit} className="btn btn-outline btn-neutral w-full">
-              Edit Profile
+            <button
+              onClick={handleEdit}
+              className="btn btn-outline w-full min-h-[44px] text-sm sm:text-base"
+            >
+              ✏️ Edit Profile
             </button>
-            <button onClick={handleLogout} className="btn btn-error btn-outline w-full">
-              Logout
+            <button
+              onClick={handleLogout}
+              className="btn btn-error btn-outline w-full min-h-[44px] text-sm sm:text-base"
+            >
+              🚪 Logout
             </button>
           </div>
         </div>
       ) : (
-        <div className="card bg-base-100 shadow-lg p-8">
-          <h2 className="text-2xl font-semibold mb-6">Edit Profile</h2>
+        <div className="card bg-base-100 shadow-xl border border-base-300/60 p-4 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Edit Profile</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-2">Full Name</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-1">Full Name</label>
               <input
                 type="text"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleInputChange}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full h-11 sm:h-12 text-sm"
                 placeholder="Enter your full name"
+                required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">Email Address</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-1">Email Address</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full h-11 sm:h-12 text-sm"
                 placeholder="Enter your email"
+                required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-2">Mobile Number</label>
+              <label className="block text-xs sm:text-sm font-semibold mb-1">Mobile Number</label>
               <input
                 type="tel"
                 name="mobileNumber"
                 value={formData.mobileNumber}
                 onChange={handleInputChange}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full h-11 sm:h-12 text-sm"
                 placeholder="Enter your mobile number"
               />
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex gap-2.5 sm:gap-4 pt-3 sm:pt-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="btn btn-success flex-1"
+                className="btn btn-success flex-1 min-h-[44px] text-sm font-semibold shadow-md"
               >
                 {loading ? "Saving..." : "Save Changes"}
               </button>
@@ -221,7 +248,7 @@ const UserDashboard = () => {
                 type="button"
                 onClick={handleCancel}
                 disabled={loading}
-                className="btn btn-ghost flex-1"
+                className="btn btn-ghost flex-1 min-h-[44px] text-sm"
               >
                 Cancel
               </button>

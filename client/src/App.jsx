@@ -15,19 +15,20 @@ const App = () => {
   console.log(path);
 
   return (
-    <>
-      <Toaster />
-      {/* {path !== "/chat" && <SiteHeader />} */}
+    <div className="min-h-screen flex flex-col bg-base-100 text-base-content selection:bg-primary selection:text-primary-content">
+      <Toaster position="top-center" />
       <SiteHeader />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/chat" element={<Chat />} />
-        <Route path="/dashboard" element={<UserDashboard />} />
-      </Routes>
-    </>
+      <main className="flex-1 flex flex-col min-h-0">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
+        </Routes>
+      </main>
+    </div>
   );
 };
 

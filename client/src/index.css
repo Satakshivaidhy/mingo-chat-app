@@ -7,6 +7,17 @@
 @import "flyonui/variants.css";
 @source "../node_modules/flyonui/flyonui.js";
 
+html,
+body,
+#root {
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Scrollbar helpers */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -17,8 +28,8 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
@@ -29,4 +40,14 @@
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(150, 150, 150, 0.5);
+}
+
+/* Mobile viewport height helper */
+.chat-container-height {
+  height: calc(100dvh - 56px);
+}
+@media (min-width: 640px) {
+  .chat-container-height {
+    height: calc(100dvh - 60px);
+  }
 }

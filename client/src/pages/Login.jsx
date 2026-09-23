@@ -40,68 +40,74 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200 px-4">
-      <div className="w-full max-w-md">
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title text-3xl justify-center text-primary">
+    <div className="flex-1 flex items-center justify-center bg-base-200/60 p-3 sm:p-6">
+      <div className="w-full max-w-md my-auto">
+        <div className="card bg-base-100 shadow-xl border border-base-300/60">
+          <div className="card-body p-5 sm:p-8">
+            <h2 className="card-title text-2xl sm:text-3xl justify-center text-primary font-bold">
               Login
             </h2>
-            <p className="text-center text-base-content/70 mb-6">
-              Welcome back 👋
+            <p className="text-center text-xs sm:text-sm text-base-content/70 mb-4 sm:mb-6">
+              Welcome back to Mingo Chat 👋
             </p>
 
-            <form onSubmit={handleSubmit} onReset={handleClearForm} className="space-y-4">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={loading}
-                required
-                className="input input-bordered w-full"
-              />
+            <form onSubmit={handleSubmit} onReset={handleClearForm} className="space-y-3 sm:space-y-4">
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email address"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                  required
+                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                />
+              </div>
 
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={loading}
-                required
-                className="input input-bordered w-full"
-              />
+              <div>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                  required
+                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                />
+              </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-2.5 sm:gap-3 pt-3 sm:pt-4">
                 <button
                   type="reset"
                   disabled={loading}
-                  className="btn btn-secondary btn-outline flex-1"
+                  className="btn btn-secondary btn-outline flex-1 min-h-[42px] sm:min-h-[46px] text-sm"
                 >
                   Clear
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn btn-primary flex-1"
+                  className="btn btn-primary flex-1 min-h-[42px] sm:min-h-[46px] text-sm shadow-md"
                 >
                   {loading ? "Logging in..." : "Login"}
                 </button>
               </div>
             </form>
 
-            <p className="text-center text-sm text-base-content/60 mt-4">
+            <p className="text-center text-xs sm:text-sm text-base-content/60 mt-4 sm:mt-6">
               No account?{" "}
-              <Link to="/register" className="text-primary font-semibold">
+              <Link to="/register" className="text-primary font-semibold hover:underline">
                 Register here
               </Link>
             </p>
           </div>
         </div>
 
-        <p className="text-center text-sm text-base-content/60 mt-6">
+        <p className="text-center text-xs text-base-content/50 mt-4">
           Your data is safe with us 🔐
         </p>
       </div>

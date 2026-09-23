@@ -12,7 +12,7 @@ import {
   getDateDividerLabel,
 } from "../../utils/dateUtils";
 
-const Chatting = ({ selectedFriend, currentUser }) => {
+const Chatting = ({ selectedFriend, currentUser, onBack }) => {
   const { user } = useAuth();
   const [filteredChatData, setFilteredChatData] = useState([]);
   const [receiver, setReceiver] = useState("");
@@ -227,22 +227,47 @@ const Chatting = ({ selectedFriend, currentUser }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-base-300">
+    <div className="flex flex-col h-full w-full bg-base-300 min-w-0 overflow-hidden">
       {/* Chat Top Header */}
-      <div className="bg-base-200 px-4 py-3 border-b border-base-300 flex items-center justify-between shrink-0 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="avatar placeholder">
-            <div className="w-10 h-10 rounded-full bg-primary/20 text-primary font-semibold flex items-center justify-center">
-              <span>{receiver?.fullName?.charAt(0).toUpperCase() || "U"}</span>
+      <div className="h-14 sm:h-16 bg-base-200/95 backdrop-blur px-3 sm:px-4 border-b border-base-300 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {/* Mobile Back Button (WhatsApp style) */}
+          <button
+            type="button"
+            onClick={onBack}
+            className="md:hidden btn btn-ghost btn-circle btn-sm -ml-1 text-base-content/80 hover:text-base-content shrink-0"
+            title="Back to contacts"
+            aria-label="Back to contacts"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+
+          <div className="avatar placeholder shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/20 text-primary font-semibold flex items-center justify-center ring-1 ring-primary/30">
+              <span className="text-sm sm:text-base">
+                {receiver?.fullName?.charAt(0).toUpperCase() || "U"}
+              </span>
             </div>
           </div>
-          <div>
-            <h3 className="font-medium text-base text-base-content leading-tight">
-              {receiver?.fullName || "No friend selected"}
+
+          <div className="min-w-0">
+            <h3 className="font-semibold text-sm sm:text-base text-base-content leading-tight truncate">
+              {receiver?.fullName || "Chat"}
             </h3>
             {isReceiverTyping ? (
-              <span className="text-xs text-primary font-medium flex items-center gap-1.5">
-                <span className="inline-block animate-pulse font-semibold">typing</span>
+              <span className="text-[11px] sm:text-xs text-primary font-medium flex items-center gap-1">
+                <span className="animate-pulse">typing</span>
                 <span className="inline-flex gap-0.5 items-center">
                   <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
                   <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
@@ -250,192 +275,202 @@ const Chatting = ({ selectedFriend, currentUser }) => {
                 </span>
               </span>
             ) : (
-              <span className="text-xs text-base-content/60">Online</span>
+              <span className="text-[11px] sm:text-xs text-success font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-success"></span> Online
+              </span>
             )}
           </div>
         </div>
+
+        <div className="flex items-center gap-1 text-base-content/70">
+          <button
+            type="button"
+            onClick={fetchChatData}
+            className="btn btn-ghost btn-circle btn-xs sm:btn-sm text-base-content/70 hover:text-base-content"
+            title="Refresh messages"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 p-3 flex flex-col gap-3 justify-between overflow-hidden">
-        <div className="h-[70vh] w-full card p-3 overflow-y-auto bg-accent/20 custom-scrollbar space-y-2">
-          {filteredChatData.map((chat, idx) => {
-            const rawTime = chat.createdAt || chat.updatedAt || chat.timestamp;
-            const currentDate = rawTime ? new Date(rawTime).toDateString() : null;
-            const prevRawTime =
-              idx > 0
-                ? filteredChatData[idx - 1].createdAt ||
+      {/* Messages Scroll Area - dynamically fills height without hardcoded vh */}
+      <div className="flex-1 min-h-0 w-full p-2.5 sm:p-4 overflow-y-auto bg-base-300/40 custom-scrollbar space-y-2 sm:space-y-3">
+        {filteredChatData.map((chat, idx) => {
+          const rawTime = chat.createdAt || chat.updatedAt || chat.timestamp;
+          const currentDate = rawTime ? new Date(rawTime).toDateString() : null;
+          const prevRawTime =
+            idx > 0
+              ? filteredChatData[idx - 1].createdAt ||
                 filteredChatData[idx - 1].updatedAt ||
                 filteredChatData[idx - 1].timestamp
-                : null;
-            const prevDate = prevRawTime ? new Date(prevRawTime).toDateString() : null;
-            const showDateDivider = currentDate && currentDate !== prevDate;
+              : null;
+          const prevDate = prevRawTime ? new Date(prevRawTime).toDateString() : null;
+          const showDateDivider = currentDate && currentDate !== prevDate;
 
-            return (
-              <React.Fragment key={chat._id || idx}>
-                {showDateDivider && (
-                  <div className="flex justify-center my-3 sticky top-0 z-10">
-                    <span className="badge badge-sm py-2 px-3 bg-base-100/90 border border-base-300 backdrop-blur shadow-sm text-base-content/80 text-[11px] font-medium rounded-full">
-                      {getDateDividerLabel(rawTime)}
-                    </span>
-                  </div>
-                )}
-
-                <div
-                  className={`chat ${chat.senderId !== sender._id ? "chat-receiver" : "chat-sender"}`}
-                >
-                  <div className="chat-avatar avatar"></div>
-                  <div className="chat-header text-base-content flex items-center flex-wrap gap-1 mb-1">
-                    <span className="font-semibold text-xs">
-                      {chat.senderId !== sender._id
-                        ? receiver.fullName
-                        : sender.fullName}
-                    </span>
-                    {rawTime && (
-                      <time
-                        title={formatFullDateTime(rawTime)}
-                        className="text-base-content/60 text-[11px] ml-1.5"
-                      >
-                        • {formatMessageDayAndDate(rawTime)} at {formatMessageTime(rawTime)}
-                      </time>
-                    )}
-                  </div>
-                  <div className="flex items-end gap-1">
-                    <div className="chat-bubble break-words">
-                      {chat.replyTo && (
-                        <div className="mb-2 p-2 rounded-lg bg-base-300/50 border-l-4 border-primary">
-                          <div className="text-xs font-semibold text-primary">
-                            {chat.replyTo.senderId === sender._id
-                              ? sender.fullName
-                              : receiver.fullName}
-                          </div>
-
-                          <div className="text-xs text-base-content/70 truncate max-w-[250px]">
-                            {chat.replyTo.message}
-                          </div>
-                        </div>
-                      )}
-
-                      <div>{chat.message}</div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleReply(chat)}
-                      className="btn btn-ghost btn-xs text-base-content/50 hover:text-primary"
-                      title="Reply"
-                    >
-                      ↩
-                    </button>
-                  </div>
+          return (
+            <React.Fragment key={chat._id || idx}>
+              {showDateDivider && (
+                <div className="flex justify-center my-2 sticky top-1 z-10">
+                  <span className="badge badge-sm py-1.5 px-3 bg-base-100/90 border border-base-300/80 backdrop-blur shadow-sm text-base-content/80 text-[10px] sm:text-[11px] font-medium rounded-full">
+                    {getDateDividerLabel(rawTime)}
+                  </span>
                 </div>
-              </React.Fragment>
-            );
-          })}
-
-          {/* Real-time Typing Bubble Indicator */}
-          {isReceiverTyping && (
-            <div className="chat chat-receiver transition-all duration-300">
-              <div className="chat-avatar avatar"></div>
-              <div className="chat-header text-base-content flex items-center gap-1 mb-1">
-                <span className="font-semibold text-xs text-primary">
-                  {receiver?.fullName}
-                </span>
-              </div>
-              <div className="chat-bubble bg-base-100 text-base-content/80 py-2.5 px-4 shadow-sm border border-base-300 rounded-2xl flex items-center gap-2 w-fit">
-                <span className="text-xs text-base-content/60 italic font-medium">
-                  {receiver?.fullName?.split(" ")[0] || "Friend"} is typing
-                </span>
-                <span className="inline-flex gap-1 items-center">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></span>
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Bar with Emoji Trigger & Popover */}
-        <div className="relative">
-
-          {/* Reply Preview */}
-          {replyingTo && (
-            <div className="mb-2 px-4 py-2 bg-base-100 border border-base-300 rounded-xl flex items-center justify-between shadow-sm">
-
-              <div className="border-l-4 border-primary pl-3 min-w-0">
-                <div className="text-xs font-semibold text-primary">
-                  Replying to{" "}
-                  {replyingTo.senderId === sender._id
-                    ? sender.fullName
-                    : receiver.fullName}
-                </div>
-
-                <div className="text-sm text-base-content/70 truncate">
-                  {replyingTo.message}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={cancelReply}
-                className="btn btn-ghost btn-sm btn-circle"
-                title="Cancel reply"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-
-          {/* Emoji Picker Popover */}
-          {showEmojiPicker && (
-            <EmojiPicker
-              onSelectEmoji={handleSelectEmoji}
-              onClose={() => setShowEmojiPicker(false)}
-            />
-          )}
-
-          <div className="h-full px-3 py-2 input flex items-center gap-2 bg-base-100 border border-base-300 rounded-2xl shadow-sm">
-            <button
-              type="button"
-              data-emoji-trigger="true"
-              onClick={() => setShowEmojiPicker((prev) => !prev)}
-              className={`btn btn-ghost btn-circle btn-sm text-xl transition-all ${showEmojiPicker
-                ? "text-primary scale-110 bg-base-200"
-                : "text-base-content/70 hover:text-base-content hover:scale-105"
-                }`}
-              title="Add Emoji"
-            >
-              {showEmojiPicker ? (
-                <BsEmojiSmileFill className="size-5 text-primary" />
-              ) : (
-                <BsEmojiSmile className="size-5" />
               )}
-            </button>
 
-            <textarea
-              ref={textareaRef}
-              type="text"
-              className="w-full outline-0 resize-none bg-transparent text-base-content placeholder-base-content/50 py-1 max-h-32 min-h-[32px] leading-relaxed"
-              placeholder="Type a message..."
-              rows="1"
-              onChange={(e) => handleTypingChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              value={message}
-            ></textarea>
+              <div
+                className={`chat ${chat.senderId !== sender._id ? "chat-receiver" : "chat-sender"}`}
+              >
+                <div className="chat-avatar avatar hidden sm:inline-flex"></div>
+                <div className="chat-header text-base-content flex items-center flex-wrap gap-1 mb-0.5">
+                  <span className="font-semibold text-[11px] sm:text-xs">
+                    {chat.senderId !== sender._id
+                      ? receiver.fullName
+                      : sender.fullName}
+                  </span>
+                  {rawTime && (
+                    <time
+                      title={formatFullDateTime(rawTime)}
+                      className="text-base-content/50 text-[10px] sm:text-[11px] ml-1"
+                    >
+                      • {formatMessageTime(rawTime)}
+                    </time>
+                  )}
+                </div>
+
+                <div className="flex items-end gap-1 max-w-[88%] sm:max-w-[75%]">
+                  <div className="chat-bubble break-words break-all sm:break-normal text-sm leading-relaxed p-2.5 sm:p-3 shadow-sm">
+                    {chat.replyTo && (
+                      <div className="mb-1.5 p-1.5 px-2 rounded-lg bg-base-300/60 border-l-4 border-primary text-xs">
+                        <div className="font-semibold text-primary text-[11px]">
+                          {chat.replyTo.senderId === sender._id
+                            ? sender.fullName
+                            : receiver.fullName}
+                        </div>
+                        <div className="text-base-content/70 truncate max-w-[200px] sm:max-w-[280px]">
+                          {chat.replyTo.message}
+                        </div>
+                      </div>
+                    )}
+
+                    <div>{chat.message}</div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleReply(chat)}
+                    className="btn btn-ghost btn-xs text-base-content/40 hover:text-primary p-0.5 shrink-0"
+                    title="Reply"
+                  >
+                    ↩
+                  </button>
+                </div>
+              </div>
+            </React.Fragment>
+          );
+        })}
+
+        {/* Real-time Typing Indicator */}
+        {isReceiverTyping && (
+          <div className="chat chat-receiver transition-all duration-300">
+            <div className="chat-header text-base-content flex items-center gap-1 mb-0.5">
+              <span className="font-semibold text-[11px] text-primary">
+                {receiver?.fullName}
+              </span>
+            </div>
+            <div className="chat-bubble bg-base-100 text-base-content/80 py-2 px-3 shadow-sm border border-base-300 rounded-2xl flex items-center gap-2 w-fit">
+              <span className="text-xs text-base-content/60 italic font-medium">
+                {receiver?.fullName?.split(" ")[0] || "Friend"} is typing
+              </span>
+              <span className="inline-flex gap-1 items-center">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></span>
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Bar with Emoji Trigger & Popover */}
+      <div className="p-2 sm:p-3 bg-base-200/90 backdrop-blur border-t border-base-300 shrink-0 relative">
+        {/* Reply Preview */}
+        {replyingTo && (
+          <div className="mb-2 px-3 py-1.5 bg-base-100 border border-base-300 rounded-xl flex items-center justify-between shadow-sm">
+            <div className="border-l-4 border-primary pl-2.5 min-w-0 flex-1">
+              <div className="text-[11px] font-semibold text-primary">
+                Replying to{" "}
+                {replyingTo.senderId === sender._id
+                  ? sender.fullName
+                  : receiver.fullName}
+              </div>
+              <div className="text-xs text-base-content/70 truncate">
+                {replyingTo.message}
+              </div>
+            </div>
 
             <button
               type="button"
-              onClick={handleMessageSendSocket}
-              disabled={!message.trim()}
-              className="btn btn-primary btn-sm btn-circle shrink-0 disabled:opacity-40 transition-transform active:scale-95"
-              title="Send message"
+              onClick={cancelReply}
+              className="btn btn-ghost btn-xs btn-circle ml-2"
+              title="Cancel reply"
             >
-              <IoSend className="size-3.5" />
+              ✕
             </button>
           </div>
+        )}
+
+        {/* Emoji Picker Popover */}
+        {showEmojiPicker && (
+          <EmojiPicker
+            onSelectEmoji={handleSelectEmoji}
+            onClose={() => setShowEmojiPicker(false)}
+          />
+        )}
+
+        {/* Input Controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-base-100 border border-base-300 rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:border-primary/60 transition-colors">
+          <button
+            type="button"
+            data-emoji-trigger="true"
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            className={`btn btn-ghost btn-circle btn-sm text-lg transition-transform ${
+              showEmojiPicker
+                ? "text-primary scale-110 bg-base-200"
+                : "text-base-content/60 hover:text-base-content"
+            }`}
+            title="Add Emoji"
+          >
+            {showEmojiPicker ? (
+              <BsEmojiSmileFill className="size-5 text-primary" />
+            ) : (
+              <BsEmojiSmile className="size-5" />
+            )}
+          </button>
+
+          <textarea
+            ref={textareaRef}
+            className="flex-1 outline-none resize-none bg-transparent text-base-content placeholder-base-content/50 py-1 text-sm max-h-28 min-h-[28px] leading-relaxed"
+            placeholder="Type a message..."
+            rows="1"
+            onChange={(e) => handleTypingChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            value={message}
+          ></textarea>
+
+          <button
+            type="button"
+            onClick={handleMessageSendSocket}
+            disabled={!message.trim()}
+            className="btn btn-primary btn-sm btn-circle shrink-0 disabled:opacity-40 transition-transform active:scale-95 shadow-sm"
+            title="Send message"
+          >
+            <IoSend className="size-3.5" />
+          </button>
         </div>
       </div>
     </div>

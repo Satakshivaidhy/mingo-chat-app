@@ -88,168 +88,145 @@ const ContactUs = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-200 to-base-300 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex-1 bg-gradient-to-br from-base-200 to-base-300 py-6 sm:py-12 px-3 sm:px-6">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-6 sm:mb-10"
         >
-          <h1 className="text-5xl font-bold mb-4">Get in Touch</h1>
-          <p className="text-xl text-base-content/60">
-            Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+          <h1 className="text-3xl sm:text-5xl font-extrabold mb-2 sm:mb-4 text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            Get in Touch
+          </h1>
+          <p className="text-sm sm:text-lg text-base-content/70 max-w-xl mx-auto">
+            Have questions or feedback? Send us a message and we'll respond as soon as possible.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-10">
           {/* Contact Info Cards */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="card bg-base-100 shadow-lg"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="card bg-base-100 shadow-md border border-base-300/60"
           >
-            <div className="card-body text-center">
-              <div className="text-5xl mb-4">📧</div>
-              <h2 className="card-title justify-center">Email</h2>
-              <p className="text-base-content/70">support@mingochat.com</p>
+            <div className="card-body p-4 sm:p-6 text-center">
+              <div className="text-3xl sm:text-4xl mb-2">📧</div>
+              <h2 className="card-title text-base sm:text-lg justify-center font-bold">Email</h2>
+              <p className="text-xs sm:text-sm text-base-content/70">support@mingochat.com</p>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="card bg-base-100 shadow-lg"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="card bg-base-100 shadow-md border border-base-300/60"
           >
-            <div className="card-body text-center">
-              <div className="text-5xl mb-4">💬</div>
-              <h2 className="card-title justify-center">Chat Support</h2>
-              <p className="text-base-content/70">Available 24/7</p>
+            <div className="card-body p-4 sm:p-6 text-center">
+              <div className="text-3xl sm:text-4xl mb-2">💬</div>
+              <h2 className="card-title text-base sm:text-lg justify-center font-bold">Chat Support</h2>
+              <p className="text-xs sm:text-sm text-base-content/70">Available 24/7 in App</p>
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="card bg-base-100 shadow-lg"
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="card bg-base-100 shadow-md border border-base-300/60"
           >
-            <div className="card-body text-center">
-              <div className="text-5xl mb-4">🌍</div>
-              <h2 className="card-title justify-center">Location</h2>
-              <p className="text-base-content/70">Global Support</p>
+            <div className="card-body p-4 sm:p-6 text-center">
+              <div className="text-3xl sm:text-4xl mb-2">🌍</div>
+              <h2 className="card-title text-base sm:text-lg justify-center font-bold">Location</h2>
+              <p className="text-xs sm:text-sm text-base-content/70">Global Cloud Service</p>
             </div>
           </motion.div>
         </div>
 
         {/* Contact Form */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
           className="max-w-2xl mx-auto"
         >
-          <div className="card bg-base-100 shadow-2xl">
-            <div className="card-body">
+          <div className="card bg-base-100 shadow-xl border border-base-300/60">
+            <div className="card-body p-5 sm:p-8">
               {/* Success Message */}
               {successMessage && (
-                <div className="alert alert-success shadow-lg mb-4">
-                  <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{successMessage}</span>
-                  </div>
+                <div className="alert alert-success shadow-lg mb-4 text-xs sm:text-sm">
+                  <span>{successMessage}</span>
                 </div>
               )}
 
               {/* Error Message */}
               {errors.submit && (
-                <div className="alert alert-error shadow-lg mb-4">
-                  <div>
-                    <span>{errors.submit}</span>
-                  </div>
+                <div className="alert alert-error shadow-lg mb-4 text-xs sm:text-sm">
+                  <span>{errors.submit}</span>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 {/* Name Input */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Name</span>
-                  </label>
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-1">Name</label>
                   <input
                     type="text"
                     placeholder="Your name"
-                    className={`input input-bordered w-full transition-all ${errors.name ? 'input-error' : 'focus:input-primary'
-                      }`}
+                    className={`input input-bordered w-full h-11 sm:h-12 text-sm ${errors.name ? 'input-error' : ''}`}
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     disabled={isLoading}
                   />
                   {errors.name && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">{errors.name}</span>
-                    </label>
+                    <p className="text-error text-xs mt-1">{errors.name}</p>
                   )}
                 </div>
 
                 {/* Email Input */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Email</span>
-                  </label>
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-1">Email</label>
                   <input
                     type="email"
                     placeholder="your.email@example.com"
-                    className={`input input-bordered w-full transition-all ${errors.email ? 'input-error' : 'focus:input-primary'
-                      }`}
+                    className={`input input-bordered w-full h-11 sm:h-12 text-sm ${errors.email ? 'input-error' : ''}`}
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     disabled={isLoading}
                   />
                   {errors.email && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">{errors.email}</span>
-                    </label>
+                    <p className="text-error text-xs mt-1">{errors.email}</p>
                   )}
                 </div>
 
                 {/* Subject Input */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Subject</span>
-                  </label>
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-1">Subject</label>
                   <input
                     type="text"
                     placeholder="What is this about?"
-                    className={`input input-bordered w-full transition-all ${errors.subject ? 'input-error' : 'focus:input-primary'
-                      }`}
+                    className={`input input-bordered w-full h-11 sm:h-12 text-sm ${errors.subject ? 'input-error' : ''}`}
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
                     disabled={isLoading}
                   />
                   {errors.subject && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">{errors.subject}</span>
-                    </label>
+                    <p className="text-error text-xs mt-1">{errors.subject}</p>
                   )}
                 </div>
 
                 {/* Message Input */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-semibold">Message</span>
-                  </label>
+                <div>
+                  <label className="block text-xs sm:text-sm font-semibold mb-1">Message</label>
                   <textarea
-                    className={`textarea textarea-bordered w-full h-32 transition-all ${errors.message ? 'textarea-error' : 'focus:textarea-primary'
-                      }`}
+                    className={`textarea textarea-bordered w-full h-28 sm:h-32 text-sm leading-relaxed ${errors.message ? 'textarea-error' : ''}`}
                     placeholder="Your message here..."
                     name="message"
                     value={formData.message}
@@ -257,17 +234,14 @@ const ContactUs = () => {
                     disabled={isLoading}
                   ></textarea>
                   {errors.message && (
-                    <label className="label">
-                      <span className="label-text-alt text-error">{errors.message}</span>
-                    </label>
+                    <p className="text-error text-xs mt-1">{errors.message}</p>
                   )}
                 </div>
 
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className={`btn btn-primary w-full font-bold mt-6 ${isLoading ? 'loading' : ''
-                    }`}
+                  className="btn btn-primary w-full min-h-[44px] font-bold mt-4 shadow-md text-sm sm:text-base"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Sending...' : 'Send Message'}
@@ -278,7 +252,7 @@ const ContactUs = () => {
         </motion.div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ContactUs
+export default ContactUs;
