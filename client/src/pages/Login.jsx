@@ -4,24 +4,73 @@ import api from "../config/api";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+// ─── Regex Patterns ───────────────────────────────────────────────────────────
+const REGEX = {
+  email: /^[\w.]+@(gmail|outlook)\.(com|in)$/,
+  password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+};
+
+const MESSAGES = {
+  email: "Enter a valid email (e.g. user@gmail.com)",
+  password: "Min 8 chars with uppercase, lowercase, number & special character",
+};
+
 const Login = () => {
   const navigate = useNavigate();
   const { setUser, setIsLogin } = useAuth();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [loading, setLoading] = useState(false);
+
+  // Validate a single field
+  const validateField = (name, value) => {
+    if (!value.trim()) return "This field is required";
+    if (REGEX[name] && !REGEX[name].test(value)) return MESSAGES[name];
+    return "";
+  };
+
+  // Validate all fields, returns true if all valid
+  const validateAll = () => {
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const msg = validateField(key, formData[key]);
+      if (msg) newErrors[key] = msg;
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Real-time validation after field is touched
+    if (touched[name]) {
+      setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   const handleClearForm = () => {
     setFormData({ email: "", password: "" });
+    setErrors({});
+    setTouched({});
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Mark all as touched so errors become visible
+    setTouched({ email: true, password: true });
+    if (!validateAll()) {
+      toast.error("Please fix the errors before submitting");
+      return;
+    }
     setLoading(true);
     try {
       const res = await api.post("/auth/login", formData);
@@ -39,6 +88,13 @@ const Login = () => {
     }
   };
 
+  // Border class based on validation state
+  const inputClass = (name) => {
+    const base = "input input-bordered w-full h-11 sm:h-12 text-sm";
+    if (!touched[name]) return base;
+    return errors[name] ? `${base} input-error` : `${base} input-success`;
+  };
+
   return (
     <div className="flex-1 flex items-center justify-center bg-base-200/60 p-3 sm:p-6">
       <div className="w-full max-w-md my-auto">
@@ -51,7 +107,8 @@ const Login = () => {
               Welcome back to Mingo Chat 👋
             </p>
 
-            <form onSubmit={handleSubmit} onReset={handleClearForm} className="space-y-3 sm:space-y-4">
+            <form onSubmit={handleSubmit} onReset={handleClearForm} className="space-y-3 sm:space-y-4" noValidate>
+              {/* Email */}
               <div>
                 <input
                   type="email"
@@ -60,12 +117,18 @@ const Login = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={loading}
-                  required
-                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                  className={inputClass("email")}
                 />
+                {touched.email && errors.email && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.email}
+                  </p>
+                )}
               </div>
 
+              {/* Password */}
               <div>
                 <input
                   type="password"
@@ -74,10 +137,15 @@ const Login = () => {
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={loading}
-                  required
-                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                  className={inputClass("password")}
                 />
+                {touched.password && errors.password && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.password}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2.5 sm:gap-3 pt-3 sm:pt-4">

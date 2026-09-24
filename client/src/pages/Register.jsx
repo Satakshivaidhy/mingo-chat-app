@@ -4,6 +4,22 @@ import api from "../config/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+// ─── Regex Patterns ───────────────────────────────────────────────────────────
+const REGEX = {
+  fullName: /^[A-Za-z ]{3,}$/,
+  email: /^[\w.]+@(gmail|outlook|yahoo|ricr)\.(com|in|co\.in)$/,
+  mobileNumber: /^[6-9]\d{9}$/,
+  password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+};
+
+const MESSAGES = {
+  fullName: "Min 3 characters, only alphabets and spaces allowed",
+  email: "Enter a valid email (e.g. user@gmail.com)",
+  mobileNumber: "Enter a valid 10-digit Indian mobile number (starts with 6-9)",
+  password: "Min 8 chars with uppercase, lowercase, number & special character",
+  confirmPassword: "Passwords do not match",
+};
+
 const Register = () => {
   const navigate = useNavigate();
   const { setUser, setIsLogin } = useAuth();
@@ -17,11 +33,54 @@ const Register = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [validationError, setValidationError] = useState({});
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
+  // ─── Validate a single field ───────────────────────────────────────────────
+  const validateField = (name, value, currentFormData = formData) => {
+    if (!value.trim()) return "This field is required";
+
+    if (name === "confirmPassword") {
+      return value !== currentFormData.password ? MESSAGES.confirmPassword : "";
+    }
+
+    if (REGEX[name] && !REGEX[name].test(value)) return MESSAGES[name];
+    return "";
+  };
+
+  // ─── Validate all fields, returns true if valid ────────────────────────────
+  const validateAll = () => {
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const msg = validateField(key, formData[key], formData);
+      if (msg) newErrors[key] = msg;
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const updated = { ...formData, [name]: value };
+    setFormData(updated);
+
+    // Real-time validation after field is touched
+    if (touched[name]) {
+      setErrors((prev) => ({ ...prev, [name]: validateField(name, value, updated) }));
+    }
+    // Also re-validate confirmPassword live when password changes
+    if (name === "password" && touched.confirmPassword) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: validateField("confirmPassword", updated.confirmPassword, updated),
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   const handleClearForm = () => {
@@ -32,48 +91,27 @@ const Register = () => {
       password: "",
       confirmPassword: "",
     });
-    setValidationError({});
-  };
-
-  const validate = () => {
-    let Error = {};
-
-    if (formData.fullName.length < 3) {
-      Error.fullName = "Name should be more than 3 characters";
-    } else if (!/^[A-Za-z ]+$/.test(formData.fullName)) {
-      Error.fullName = "Only alphabets and spaces allowed";
-    }
-
-    if (
-      !/^[\w.]+@(gmail|outlook|yahoo|ricr)\.(com|in|co\.in)$/.test(
-        formData.email
-      )
-    ) {
-      Error.email = "Use proper email format";
-    }
-
-    if (!/^[6-9]\d{9}$/.test(formData.mobileNumber)) {
-      Error.mobileNumber = "Only Indian mobile numbers allowed";
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      Error.confirmPassword = "Passwords do not match";
-    }
-
-    setValidationError(Error);
-    return Object.keys(Error).length === 0;
+    setErrors({});
+    setTouched({});
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    // Mark all fields as touched so errors become visible
+    setTouched({
+      fullName: true,
+      email: true,
+      mobileNumber: true,
+      password: true,
+      confirmPassword: true,
+    });
 
-    if (!validate()) {
-      setIsLoading(false);
-      toast.error("Fill the form correctly");
+    if (!validateAll()) {
+      toast.error("Please fix the errors before submitting");
       return;
     }
 
+    setIsLoading(true);
     try {
       const res = await api.post("/auth/register", formData);
       toast.success(res.data.message);
@@ -92,6 +130,13 @@ const Register = () => {
     }
   };
 
+  // Helper: border class based on validation state
+  const inputClass = (name) => {
+    const base = "input input-bordered w-full h-11 sm:h-12 text-sm";
+    if (!touched[name]) return base;
+    return errors[name] ? `${base} input-error` : `${base} input-success`;
+  };
+
   return (
     <div className="flex-1 flex items-center justify-center bg-base-200/60 p-3 sm:p-6 py-6 sm:py-10">
       <div className="w-full max-w-lg my-auto">
@@ -104,7 +149,8 @@ const Register = () => {
               Create your Mingo Chat account 🫡
             </p>
 
-            <form onSubmit={handleSubmit} onReset={handleClearForm} className="space-y-3 sm:space-y-4">
+            <form onSubmit={handleSubmit} onReset={handleClearForm} className="space-y-3 sm:space-y-4" noValidate>
+              {/* Full Name */}
               <div>
                 <input
                   type="text"
@@ -113,14 +159,18 @@ const Register = () => {
                   autoComplete="name"
                   value={formData.fullName}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={isLoading}
-                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                  className={inputClass("fullName")}
                 />
-                {validationError.fullName && (
-                  <p className="text-error text-xs mt-1">{validationError.fullName}</p>
+                {touched.fullName && errors.fullName && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.fullName}
+                  </p>
                 )}
               </div>
 
+              {/* Email */}
               <div>
                 <input
                   type="email"
@@ -129,14 +179,18 @@ const Register = () => {
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={isLoading}
-                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                  className={inputClass("email")}
                 />
-                {validationError.email && (
-                  <p className="text-error text-xs mt-1">{validationError.email}</p>
+                {touched.email && errors.email && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.email}
+                  </p>
                 )}
               </div>
 
+              {/* Mobile Number */}
               <div>
                 <input
                   type="tel"
@@ -146,14 +200,18 @@ const Register = () => {
                   maxLength="10"
                   value={formData.mobileNumber}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={isLoading}
-                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                  className={inputClass("mobileNumber")}
                 />
-                {validationError.mobileNumber && (
-                  <p className="text-error text-xs mt-1">{validationError.mobileNumber}</p>
+                {touched.mobileNumber && errors.mobileNumber && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.mobileNumber}
+                  </p>
                 )}
               </div>
 
+              {/* Password */}
               <div>
                 <input
                   type="password"
@@ -162,11 +220,18 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={isLoading}
-                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                  className={inputClass("password")}
                 />
+                {touched.password && errors.password && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.password}
+                  </p>
+                )}
               </div>
 
+              {/* Confirm Password */}
               <div>
                 <input
                   type="password"
@@ -175,11 +240,14 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  onBlur={handleBlur}
                   disabled={isLoading}
-                  className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                  className={inputClass("confirmPassword")}
                 />
-                {validationError.confirmPassword && (
-                  <p className="text-error text-xs mt-1">{validationError.confirmPassword}</p>
+                {touched.confirmPassword && errors.confirmPassword && (
+                  <p className="text-error text-xs mt-1 flex items-center gap-1">
+                    <span>⚠</span> {errors.confirmPassword}
+                  </p>
                 )}
               </div>
 
