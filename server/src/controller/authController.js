@@ -2,6 +2,8 @@ import { generateToken } from "../config/authToken.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcrypt";
 
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
 // ================= REGISTER =================
 export const UserRegister = async (req, res, next) => {
   try {
@@ -9,6 +11,12 @@ export const UserRegister = async (req, res, next) => {
 
     if (!fullName || !email || !mobileNumber || !password) {
       const error = new Error("All fields required");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (!PASSWORD_REGEX.test(password)) {
+      const error = new Error("Password must be at least 8 characters with uppercase, lowercase, number and special character");
       error.statusCode = 400;
       return next(error);
     }
@@ -77,6 +85,86 @@ export const UserLogin = async (req, res, next) => {
     res.status(200).json({
       message: "Login successful",
       data: userData,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ================= UPDATE PASSWORD =================
+export const UpdatePassword = async (req, res, next) => {
+  try {
+    const currentUser = req.user;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      const error = new Error("Current password and new password are required");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (!PASSWORD_REGEX.test(newPassword)) {
+      const error = new Error("New password must be at least 8 characters with uppercase, lowercase, number and special character");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const user = await User.findById(currentUser._id);
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordMatch) {
+      const error = new Error("Current password is incorrect");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ================= FORGOT PASSWORD =================
+export const ForgotPassword = async (req, res, next) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      const error = new Error("Email and new password are required");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (!PASSWORD_REGEX.test(newPassword)) {
+      const error = new Error("New password must be at least 8 characters with uppercase, lowercase, number and special character");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      const error = new Error("No account found with this email");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.status(200).json({
+      message: "Password reset successfully",
     });
   } catch (error) {
     next(error);

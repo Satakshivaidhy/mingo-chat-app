@@ -3,11 +3,14 @@ import { useAuth } from "../context/AuthContext";
 import api from "../config/api";
 import { useNavigate } from "react-router-dom";
 
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
 const UserDashboard = () => {
   const { user, isLogin, setUser, setIsLogin } = useAuth();
   const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -15,6 +18,11 @@ const UserDashboard = () => {
     fullName: "",
     email: "",
     mobileNumber: "",
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   useEffect(() => {
@@ -44,6 +52,7 @@ const UserDashboard = () => {
 
   const handleEdit = () => {
     setIsEditing(true);
+    setShowPasswordForm(false);
     setError("");
     setSuccess("");
   };
@@ -57,6 +66,17 @@ const UserDashboard = () => {
     });
     setError("");
     setSuccess("");
+  };
+
+  const handlePasswordInputChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordForm((prev) => ({ ...prev, [name]: value }));
+    setError("");
+  };
+
+  const resetPasswordForm = () => {
+    setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    setShowPasswordForm(false);
   };
 
   const handleSubmit = async (e) => {
@@ -83,6 +103,41 @@ const UserDashboard = () => {
     } catch (err) {
       console.error("Error updating profile:", err);
       setError(err.response?.data?.message || "Failed to update profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setError("Please fill in all password fields.");
+      return;
+    }
+    if (!PASSWORD_REGEX.test(passwordForm.newPassword)) {
+      setError("New password must be at least 8 characters with uppercase, lowercase, number and special character.");
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError("New password and confirm password do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await api.post("/auth/update-password", {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      setSuccess(response.data.message || "Password updated successfully!");
+      resetPasswordForm();
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Error updating password:", err);
+      setError(err.response?.data?.message || "Failed to update password. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -119,7 +174,7 @@ const UserDashboard = () => {
         </div>
       )}
 
-      {!isEditing ? (
+      {!isEditing && !showPasswordForm ? (
         <div className="card bg-base-100 shadow-xl border border-base-300/60 p-4 sm:p-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 pb-4 border-b border-base-200">
             <div className="flex items-center gap-3">
@@ -186,6 +241,12 @@ const UserDashboard = () => {
               ✏️ Edit Profile
             </button>
             <button
+              onClick={() => setShowPasswordForm(true)}
+              className="btn btn-warning btn-outline w-full min-h-[44px] text-sm sm:text-base"
+            >
+              🔒 Update Password
+            </button>
+            <button
               onClick={handleLogout}
               className="btn btn-error btn-outline w-full min-h-[44px] text-sm sm:text-base"
             >
@@ -193,7 +254,7 @@ const UserDashboard = () => {
             </button>
           </div>
         </div>
-      ) : (
+      ) : isEditing ? (
         <div className="card bg-base-100 shadow-xl border border-base-300/60 p-4 sm:p-8">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Edit Profile</h2>
 
@@ -247,6 +308,69 @@ const UserDashboard = () => {
               <button
                 type="button"
                 onClick={handleCancel}
+                disabled={loading}
+                className="btn btn-ghost flex-1 min-h-[44px] text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <div className="card bg-base-100 shadow-xl border border-base-300/60 p-4 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Update Password</h2>
+
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold mb-1">Current Password</label>
+              <input
+                type="password"
+                name="currentPassword"
+                value={passwordForm.currentPassword}
+                onChange={handlePasswordInputChange}
+                className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                placeholder="Enter current password"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold mb-1">New Password</label>
+              <input
+                type="password"
+                name="newPassword"
+                value={passwordForm.newPassword}
+                onChange={handlePasswordInputChange}
+                className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                placeholder="Enter new password"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs sm:text-sm font-semibold mb-1">Confirm New Password</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                value={passwordForm.confirmPassword}
+                onChange={handlePasswordInputChange}
+                className="input input-bordered w-full h-11 sm:h-12 text-sm"
+                placeholder="Confirm new password"
+                required
+              />
+            </div>
+
+            <div className="flex gap-2.5 sm:gap-4 pt-3 sm:pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn btn-success flex-1 min-h-[44px] text-sm font-semibold shadow-md"
+              >
+                {loading ? "Updating..." : "Update Password"}
+              </button>
+              <button
+                type="button"
+                onClick={resetPasswordForm}
                 disabled={loading}
                 className="btn btn-ghost flex-1 min-h-[44px] text-sm"
               >
