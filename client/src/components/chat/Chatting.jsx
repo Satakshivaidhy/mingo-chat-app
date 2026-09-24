@@ -18,12 +18,14 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
   const [receiver, setReceiver] = useState("");
   const [sender, setSender] = useState("");
   const [message, setMessage] = useState("");
+  const [attachment, setAttachment] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isReceiverTyping, setIsReceiverTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const isSelfTypingRef = useRef(false);
+  const fileInputRef = useRef(null);
   // Message currently being replied to
   const [replyingTo, setReplyingTo] = useState(null);
 
@@ -90,8 +92,25 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
     }
   };
 
+  const handleAttachmentSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAttachment({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        dataUrl: reader.result,
+      });
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
+  };
+
   const handleMessageSendSocket = async () => {
-    if (!message || !message.trim()) return;
+    if ((!message || !message.trim()) && !attachment) return;
 
     stopTypingEmitter();
 
@@ -99,6 +118,7 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
       senderId: user._id,
       receiverId: receiver?._id,
       message: message.trim(),
+      attachment: attachment ? { ...attachment } : null,
       replyTo: replyingTo?._id || null,
     };
 
@@ -114,12 +134,14 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
             senderId: user._id,
             receiverId: receiver?._id,
             message: message.trim(),
+            attachment: attachment ? { ...attachment } : null,
             replyTo: replyingTo || null,
             updatedAt: timeStamp,
             createdAt: timeStamp,
           },
         ]);
         setMessage("");
+        setAttachment(null);
         setReplyingTo(null);
         setShowEmojiPicker(false);
       }
@@ -355,7 +377,28 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
                       </div>
                     )}
 
-                    <div>{chat.message}</div>
+                    {chat.attachment?.dataUrl && (
+                      <div className="mb-2">
+                        {chat.attachment.type?.startsWith("image/") ? (
+                          <img
+                            src={chat.attachment.dataUrl}
+                            alt={chat.attachment.name || "Shared image"}
+                            className="max-w-full max-h-64 rounded-xl border border-base-300 object-cover"
+                          />
+                        ) : (
+                          <a
+                            href={chat.attachment.dataUrl}
+                            download={chat.attachment.name || "file"}
+                            className="inline-flex items-center gap-2 rounded-xl bg-base-200 px-3 py-2 text-xs font-medium text-primary hover:underline"
+                          >
+                            <span>📎</span>
+                            {chat.attachment.name || "Attachment"}
+                          </a>
+                        )}
+                      </div>
+                    )}
+
+                    {chat.message && <div>{chat.message}</div>}
                   </div>
 
                   <button
@@ -432,6 +475,23 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
           />
         )}
 
+        {attachment && (
+          <div className="mb-2 flex items-center justify-between rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-base-content/80">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base">📎</span>
+              <span className="truncate">{attachment.name}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAttachment(null)}
+              className="btn btn-ghost btn-xs btn-circle"
+              title="Remove attachment"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Input Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 bg-base-100 border border-base-300 rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:border-primary/60 transition-colors">
           <button
@@ -452,6 +512,23 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
             )}
           </button>
 
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="btn btn-ghost btn-circle btn-sm text-lg text-base-content/60 hover:text-base-content"
+            title="Upload file or image"
+          >
+            📎
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.csv"
+            className="hidden"
+            onChange={handleAttachmentSelect}
+          />
+
           <textarea
             ref={textareaRef}
             className="flex-1 outline-none resize-none bg-transparent text-base-content placeholder-base-content/50 py-1 text-sm max-h-28 min-h-[28px] leading-relaxed"
@@ -465,7 +542,7 @@ const Chatting = ({ selectedFriend, currentUser, onBack }) => {
           <button
             type="button"
             onClick={handleMessageSendSocket}
-            disabled={!message.trim()}
+            disabled={(!message || !message.trim()) && !attachment}
             className="btn btn-primary btn-sm btn-circle shrink-0 disabled:opacity-40 transition-transform active:scale-95 shadow-sm"
             title="Send message"
           >

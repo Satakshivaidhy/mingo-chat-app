@@ -63,7 +63,8 @@ const WebSocket = (io) => {
                 let newMessage = await Message.create({
                     senderId: payload.senderId,
                     receiverId: payload.receiverId,
-                    message: payload.message,
+                    message: payload.message || "",
+                    attachment: payload.attachment || null,
                     replyTo: payload.replyTo || null,
                 });
 

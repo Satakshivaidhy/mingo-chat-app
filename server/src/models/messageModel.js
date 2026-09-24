@@ -12,7 +12,25 @@ const messageSchema = mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
+      default: "",
+    },
+    attachment: {
+      name: {
+        type: String,
+        default: "",
+      },
+      type: {
+        type: String,
+        default: "",
+      },
+      dataUrl: {
+        type: String,
+        default: "",
+      },
+      size: {
+        type: Number,
+        default: 0,
+      },
     },
     // Message that this message is replying to
     replyTo: {

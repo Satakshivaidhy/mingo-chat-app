@@ -2,14 +2,11 @@ import Message from "../models/messageModel.js";
 
 export const SendMessage = async (req, res, next) => {
   try {
-    const { receiverID, message } = req.body;
+    const { receiverID, message, attachment } = req.body;
     const currentUser = req.user;
 
-    console.log("Receiver ID:", receiverID);
-    console.log("Message:", message);
-
-    if (!receiverID || !message) {
-      const error = new Error("All fields required");
+    if (!receiverID || (!message && !attachment)) {
+      const error = new Error("Receiver and message or attachment are required");
       error.statusCode = 400;
       return next(error);
     }
@@ -17,7 +14,8 @@ export const SendMessage = async (req, res, next) => {
     const newMessage = await Message.create({
       senderId: currentUser._id,
       receiverId: receiverID,
-      message,
+      message: message || "",
+      attachment: attachment || null,
     });
     res
       .status(201)
