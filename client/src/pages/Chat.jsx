@@ -32,9 +32,26 @@ const Chat = () => {
   useEffect(() => {
     if (!isLogin) {
       navigate("/login");
+      return;
     }
 
-    if (isLogin && user) {
+    const handlePopState = (event) => {
+      event.preventDefault();
+
+      if (selectedFriend || isOpenChat) {
+        setSelectedFriend(null);
+        setIsOpenChat(false);
+        window.history.pushState(null, "", "/chat");
+        return;
+      }
+
+      window.history.pushState(null, "", "/chat");
+    };
+
+    window.history.pushState(null, "", "/chat");
+    window.addEventListener("popstate", handlePopState);
+
+    if (user) {
       socketAPI.emit("user:online", user._id);
       fetchRecentUsers();
 
@@ -73,9 +90,14 @@ const Chat = () => {
         socketAPI.off("typing:start", handleGlobalTypingStart);
         socketAPI.off("typing:stop", handleGlobalTypingStop);
         socketAPI.off("receive", handleGlobalReceive);
+        window.removeEventListener("popstate", handlePopState);
       };
     }
-  }, [isLogin, user]);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [isLogin, user, selectedFriend, isOpenChat, navigate]);
 
   const filteredUsers = recentUser.filter((friend) =>
     friend.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,6 +107,7 @@ const Chat = () => {
   const handleBackToList = () => {
     setSelectedFriend(null);
     setIsOpenChat(false);
+    window.history.pushState(null, "", "/chat");
   };
 
   return (
