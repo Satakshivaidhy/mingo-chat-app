@@ -9,14 +9,14 @@ const REGEX = {
   fullName: /^[A-Za-z ]{3,}$/,
   email: /^[\w.]+@(gmail|outlook|yahoo|ricr)\.(com|in|co\.in)$/,
   mobileNumber: /^[6-9]\d{9}$/,
-  password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+  password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
 };
 
 const MESSAGES = {
   fullName: "Min 3 characters, only alphabets and spaces allowed",
   email: "Enter a valid email (e.g. user@gmail.com)",
   mobileNumber: "Enter a valid 10-digit Indian mobile number (starts with 6-9)",
-  password: "Min 8 chars with uppercase, lowercase, number & special character",
+  password: "Min 6 chars with uppercase, lowercase, number & special character",
   confirmPassword: "Passwords do not match",
 };
 

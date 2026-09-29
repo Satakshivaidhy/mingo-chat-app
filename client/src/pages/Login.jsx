@@ -112,7 +112,7 @@ const Login = () => {
       return;
     }
     if (!newPasswordValid) {
-      toast.error("Password must be at least 8 characters with uppercase, lowercase, number and special character");
+      toast.error("Password must be at least 6 characters with uppercase, lowercase, number and special character");
       return;
     }
     if (!passwordsMatch) {
